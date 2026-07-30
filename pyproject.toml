@@ -1,0 +1,37 @@
+[project]
+name = "claude-planner"
+version = "0.1.0"
+description = "Generator kompletnego, żywego środowiska Claude Code do planowania projektów IT dla software house'u — wizja, ADR, roadmapa, agenci, skille, dowolny stack."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "piatkowski" }]
+dependencies = [
+    "typer>=0.12",
+    "rich>=13.7",
+    "pyyaml>=6.0",
+    "pydantic>=2.6",
+    "jinja2>=3.1",
+]
+
+[project.scripts]
+claude-planner = "claude_planner.cli:app"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-mock>=3.14"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/claude_planner"]
+
+[tool.hatch.build]
+artifacts = [
+    "src/claude_planner/profiles/*.yaml",
+    "src/claude_planner/templates/**/*.j2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

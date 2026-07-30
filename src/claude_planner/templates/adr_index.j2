@@ -1,0 +1,15 @@
+# Architecture Decision Records — {{ project_name }}
+
+Rejestr decyzji architektonicznych. Nowe ADR dodawaj przez `/new-adr` — nigdy nie
+edytuj przyjętych ADR wstecznie; zamiast tego dodaj nowy, który zastępuje poprzedni
+(`Status: Zastąpiona przez ADR-XXXX`).
+
+Szablon: `docs/adr/template.md`
+
+## Lista
+
+| ADR | Tytuł | Status |
+|-----|-------|--------|
+{% for adr in adrs -%}
+| [ADR-{{ adr.number }}]({{ adr.filename }}) | {{ adr.title }} | Zaakceptowana |
+{% endfor %}

@@ -1,0 +1,14 @@
+---
+description: Zaktualizuj docs/roadmap.md na podstawie bieżącego stanu prac
+---
+
+Zaktualizuj `docs/roadmap.md` świadomie, na podstawie:
+- rozmowy z użytkownikiem w tej sesji ($ARGUMENTS, jeśli podano),
+- `state.md` (bieżący stan),
+- historii commitów/PR-ów jeśli to pomaga ocenić postęp (`git log`).
+
+Zasady:
+1. Nie przepisuj całej roadmapy od zera bez potrzeby — zmieniaj tylko to, co faktycznie się zmieniło (status faz/milestone'ów, przesunięcia terminów, nowe pozycje).
+2. Jeśli zmiana zakresu jest na tyle istotna, że zmienia wcześniejsze założenia architektoniczne, zasugeruj też `/new-adr`.
+3. Pokaż użytkownikowi zwięzłe podsumowanie co się zmieniło w roadmapie, zanim uznasz zadanie za zakończone.
+4. Rozważ czy `state.md` też wymaga odświeżenia przez `/update-state` — jeśli tak, zapytaj zamiast robić to automatycznie.

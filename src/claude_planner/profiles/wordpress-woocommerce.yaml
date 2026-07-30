@@ -1,0 +1,39 @@
+id: wordpress-woocommerce
+name: "WordPress / WooCommerce"
+description: >
+  Strona lub sklep na WordPressie, z WooCommerce dla e-commerce; motywy,
+  wtyczki własne i integracje z zewnętrznymi pluginami.
+languages: ["PHP", "JavaScript"]
+frameworks: ["WordPress", "WooCommerce", "ACF", "Gutenberg/Block Editor"]
+extra_agents:
+  - id: plugin-theme-compat-checker
+    name: "Plugin/Theme Compatibility Checker"
+    description: "Pilnuje zgodności własnego kodu z rdzeniem WP/WooCommerce i innymi wtyczkami."
+    focus: >
+      Wersje WP/WooCommerce/PHP wspierane przez projekt, unikanie modyfikacji
+      core, hooki i filtry zamiast bezpośrednich zmian w kodzie zależności,
+      konflikty ze znanymi popularnymi wtyczkami.
+skills:
+  - name: "wp-plugin-conventions"
+    description: "Konwencje pisania własnych wtyczek/motywów WordPress."
+    when_to_use: "Przy tworzeniu customowej funkcjonalności w WP/WooCommerce."
+    guidance: >
+      Własna funkcjonalność jako osobna wtyczka (nie modyfikacja motywu/core),
+      użycie hooków (actions/filters), prefiksowanie nazw funkcji/klas,
+      zgodność z WP Coding Standards.
+  - name: "woocommerce-checkout-conventions"
+    description: "Konwencje pracy z procesem checkout i produktami WooCommerce."
+    when_to_use: "Przy zmianach w procesie zakupowym, produktach, płatnościach."
+    guidance: >
+      Nie nadpisywać rdzenia checkout bezpośrednio, testować z realnymi bramkami
+      płatności na środowisku staging, pilnować zgodności z podatkami/walutami
+      klienta.
+conventions_hints: >
+  Środowisko lokalne odtwarzalne (np. przez kontener), wersjonowanie wtyczek/motywu
+  w repo, baza danych i media NIE w repo (osobna strategia synchronizacji).
+testing_hints: >
+  Testy manualne krytycznych ścieżek zakupowych na staging przed każdym
+  wdrożeniem, monitoring po deployu (błędy PHP, płatności).
+claude_hints: >
+  Uwzględnij specyfikę WP: aktualizacje core/wtyczek jako źródło ryzyka,
+  konieczność planu backupu i rollbacku przed każdą zmianą na produkcji.

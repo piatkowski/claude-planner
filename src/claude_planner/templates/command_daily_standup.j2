@@ -1,0 +1,19 @@
+---
+description: Wygeneruj krótkie podsumowanie standup (co zrobione / co dalej / blockery)
+---
+
+Przygotuj krótkie podsumowanie w stylu daily standup, na podstawie:
+- `state.md` (bieżące priorytety, blockery),
+- `git log --oneline -15` (co się realnie wydarzyło od ostatniego razu),
+- `docs/roadmap.md` (co jest w bieżącej fazie).
+
+Format odpowiedzi (wyświetl w czacie, NIE zapisuj do żadnego pliku — to ma być
+efemeryczne, żeby nie zaśmiecać repo):
+
+**Zrobione:** ...
+**W trakcie / dalej:** ...
+**Blockery:** ...
+
+Jeśli podczas przygotowywania podsumowania zauważysz, że `state.md` jest wyraźnie
+nieaktualny, zaproponuj użytkownikowi uruchomienie `/update-state` — nie rób tego
+automatycznie.

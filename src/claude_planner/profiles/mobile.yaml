@@ -1,0 +1,36 @@
+id: mobile
+name: "Mobile (React Native / Flutter / natywne)"
+description: >
+  Aplikacja mobilna na iOS/Android — cross-platform (React Native, Flutter) lub natywna.
+languages: ["TypeScript", "Dart", "Swift", "Kotlin"]
+frameworks: ["React Native", "Flutter", "SwiftUI", "Jetpack Compose"]
+extra_agents:
+  - id: release-manager
+    name: "Mobile Release Manager"
+    description: "Pilnuje procesu wydań do App Store / Google Play."
+    focus: >
+      Wersjonowanie buildów, checklisty przed release'em, wymagania sklepów
+      (polityki prywatności, uprawnienia, screenshoty), zarządzanie kanałami
+      (dev/beta/prod).
+skills:
+  - name: "offline-first-conventions"
+    description: "Konwencje pracy offline i synchronizacji danych."
+    when_to_use: "Przy funkcjach wymagających działania bez internetu."
+    guidance: >
+      Lokalny cache jako źródło prawdy w trybie offline, jawna strategia
+      konfliktów przy synchronizacji, informowanie użytkownika o stanie sieci.
+  - name: "mobile-ui-conventions"
+    description: "Konwencje UI/UX specyficzne dla platform mobilnych."
+    when_to_use: "Przy tworzeniu nowych ekranów/komponentów."
+    guidance: >
+      Zgodność z wytycznymi platformy (HIG dla iOS, Material dla Android),
+      dostępność (rozmiary dotykowe, screen readery), obsługa różnych rozmiarów ekranu.
+conventions_hints: >
+  Jasny podział na warstwę UI, logikę biznesową i integracje natywne;
+  konfiguracja per-platform trzymana osobno i jawnie opisana.
+testing_hints: >
+  Testy jednostkowe logiki, testy widgetów/komponentów, smoke testy e2e na
+  fizycznym/emulowanym urządzeniu dla krytycznych ścieżek.
+claude_hints: >
+  Uwzględnij proces publikacji do sklepów jako osobny element roadmapy
+  (nie tylko development, ale i store review time).

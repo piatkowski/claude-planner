@@ -1,0 +1,45 @@
+id: postgresql-pgvector-postgis
+name: "PostgreSQL (+ pgvector, PostGIS)"
+description: >
+  Profil dokładający się do innych (np. web-fullstack, backend-api, ai-ml) gdy
+  bazą danych jest PostgreSQL, ewentualnie z wektorowym wyszukiwaniem
+  (pgvector) lub danymi geoprzestrzennymi (PostGIS).
+languages: ["SQL", "Python"]
+frameworks: ["PostgreSQL", "pgvector", "PostGIS", "SQLAlchemy/Prisma/Django ORM"]
+extra_agents:
+  - id: db-migration-guardian
+    name: "Database Migration Guardian"
+    description: "Pilnuje bezpieczeństwa migracji schematu bazy danych."
+    focus: >
+      Migracje odwracalne tam gdzie to możliwe, unikanie długich locków na
+      dużych tabelach, jawna strategia dla zmian breaking (np. expand-contract),
+      indeksy pod nowe zapytania dodawane razem ze zmianą.
+skills:
+  - name: "schema-design-conventions"
+    description: "Konwencje projektowania schematu relacyjnego."
+    when_to_use: "Przy dodawaniu/zmianie tabel, relacji, indeksów."
+    guidance: >
+      Normalizacja jako punkt wyjścia z jawnym uzasadnieniem odstępstw,
+      klucze obce z jawną polityką kaskad, indeksy dobierane pod realne zapytania.
+  - name: "pgvector-search-conventions"
+    description: "Konwencje wyszukiwania wektorowego (embeddingi) w Postgresie."
+    when_to_use: "Przy projektowaniu funkcji wyszukiwania semantycznego/RAG na pgvector."
+    guidance: >
+      Jawny wybór typu indeksu (IVFFlat/HNSW) i metryki odległości, strategia
+      re-embeddingu przy zmianie modelu embeddingów, limity wymiarowości wektora
+      dokumentowane w ADR.
+  - name: "postgis-spatial-conventions"
+    description: "Konwencje pracy z danymi geoprzestrzennymi (PostGIS)."
+    when_to_use: "Przy funkcjach opartych o lokalizację/geometrie."
+    guidance: >
+      Jawny układ współrzędnych (SRID) używany w projekcie, indeksy GiST na
+      kolumnach geometrycznych, walidacja poprawności geometrii przy zapisie.
+conventions_hints: >
+  Ten profil zwykle NIE jest wybierany samodzielnie — łączony z profilem
+  aplikacyjnym (web-fullstack, backend-api, ai-ml), dokłada sekcje o bazie danych.
+testing_hints: >
+  Testy migracji na kopii realnych danych (lub reprezentatywnym fixture),
+  testy zapytań wektorowych/geoprzestrzennych na znanym zbiorze danych.
+claude_hints: >
+  Gdy ten profil występuje razem z ai-ml, jawnie połącz sekcję o pgvector z
+  sekcją o RAG/eval z profilu ai-ml zamiast duplikować treść.

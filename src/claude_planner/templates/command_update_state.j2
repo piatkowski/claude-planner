@@ -1,0 +1,15 @@
+---
+description: Nadpisz state.md aktualnym stanem projektu (jedyny sposób aktualizacji state.md)
+---
+
+Zaktualizuj `state.md`. To JEDYNY dozwolony sposób zmiany tego pliku.
+
+KRYTYCZNA ZASADA: **NADPISZ** cały plik nową, aktualną treścią — nie dopisuj nowej
+sekcji na końcu istniejącej. `state.md` ma zawsze pokazywać stan "tu i teraz", a nie
+historię zmian (historia decyzji żyje w `docs/adr/`).
+
+Kroki:
+1. Zbierz kontekst: bieżący `state.md`, `docs/roadmap.md`, ostatnie commity (`git log --oneline -20`), oraz to co przekazał użytkownik w $ARGUMENTS.
+2. Zapytaj użytkownika o rzeczy, których nie da się wywnioskować z repo (np. blockery biznesowe, decyzje klienta) — nie zgaduj.
+3. Napisz nową wersję `state.md` zachowując strukturę: Ostatnia aktualizacja / Faza projektu / Podsumowanie / Ostatnie decyzje / Bieżące priorytety / Blockery / Następne kroki.
+4. Zastąp CAŁĄ zawartość pliku, ustaw datę na dzisiejszą.

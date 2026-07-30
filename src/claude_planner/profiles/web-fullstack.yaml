@@ -1,0 +1,38 @@
+id: web-fullstack
+name: "Web Fullstack (SPA/SSR + API)"
+description: >
+  Aplikacja webowa z frontendem (SPA lub SSR) i backendowym API — typowy projekt
+  software house'u dla klienta biznesowego.
+languages: ["TypeScript", "JavaScript", "Python"]
+frameworks: ["React", "Next.js", "FastAPI", "Django", "Node.js/Express"]
+extra_agents:
+  - id: api-contract-guardian
+    name: "API Contract Guardian"
+    description: "Pilnuje spójności kontraktu API między frontendem a backendem."
+    focus: >
+      Weryfikuje, czy zmiany w endpointach (request/response schema) są
+      udokumentowane i zsynchronizowane po obu stronach; dba o wersjonowanie API.
+skills:
+  - name: "frontend-component-conventions"
+    description: "Konwencje budowy komponentów UI dla tego projektu."
+    when_to_use: "Przy tworzeniu lub review nowych komponentów frontendowych."
+    guidance: >
+      Komponenty prezentacyjne oddzielone od logiki (hooks/containers), stan
+      globalny tylko tam gdzie realnie potrzebny, stylowanie zgodne z przyjętym
+      design systemem klienta.
+  - name: "api-endpoint-conventions"
+    description: "Konwencje projektowania endpointów REST/GraphQL."
+    when_to_use: "Przy dodawaniu lub zmianie endpointu API."
+    guidance: >
+      Spójne nazewnictwo zasobów, jawne kody błędów, walidacja wejścia na
+      granicy warstwy API, wersjonowanie breaking changes.
+conventions_hints: >
+  Podział na frontend/ i backend/ (lub apps/web + apps/api w monorepo), wspólny
+  katalog na typy/kontrakty API współdzielone między warstwami.
+testing_hints: >
+  Testy jednostkowe komponentów i logiki biznesowej, testy integracyjne API,
+  minimalny zestaw testów e2e na krytycznych ścieżkach (logowanie, checkout itp.).
+claude_hints: >
+  Projekt typu web fullstack dla software house'u — generując coding-standards
+  i agentów, rozróżnij jawnie warstwę frontend i backend, uwzględnij kontrakt
+  API jako współdzielone źródło prawdy.

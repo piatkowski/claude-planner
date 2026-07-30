@@ -1,0 +1,27 @@
+# {{ project_name }}
+
+Klient: **{{ client_name }}**
+
+Repozytorium zawiera środowisko planistyczne Claude Code wygenerowane przez
+[`claude-planner`](https://github.com/piatkowski/claude-planner) na podstawie
+wywiadu discovery i materiałów od klienta.
+
+## Od czego zacząć
+
+1. Przeczytaj `docs/vision.md` i `docs/roadmap.md`.
+2. Otwórz sesję `claude` w tym repo — `CLAUDE.md` opisuje agentów, komendy i zasady pracy.
+3. Bieżący stan projektu: `state.md` (aktualizowany przez `/update-state`).
+
+## Struktura
+
+- `docs/` — wizja, backlog, roadmapa, standardy, ADR-y
+- `.claude/agents/` — role software house'u jako agenci Claude Code
+- `.claude/skills/` — konwencje specyficzne dla wybranego stacku
+- `.claude/commands/` — komendy do bieżącej pracy (`/new-adr`, `/update-roadmap`, ...)
+- `state.md` — jedyne źródło prawdy o bieżącym stanie (nadpisywane, nie dopisywane)
+
+## Profile technologiczne
+
+{% for profile in profiles -%}
+- {{ profile.name }}
+{% endfor %}

@@ -1,0 +1,13 @@
+---
+description: Zapisz szybką decyzję/ustalenie w state.md bez pełnego ADR
+argument-hint: [treść decyzji/ustalenia]
+---
+
+Użytkownik chce zapisać szybkie ustalenie, które NIE wymaga pełnego ADR (za mało
+istotne architektonicznie albo zbyt operacyjne): $ARGUMENTS
+
+1. Oceń krytycznie: jeśli to jednak decyzja o wysokim koszcie zmiany (wybór technologii,
+   architektury, integracji), zaproponuj `/new-adr` zamiast tego.
+2. W przeciwnym razie uruchom logikę `/update-state`, żeby dodać to ustalenie do sekcji
+   "Ostatnie decyzje" w `state.md` — pamiętaj, że cały plik jest NADPISYWANY, więc
+   przy okazji odśwież też resztę pliku, a nie tylko dopisz jedną linijkę do starej wersji.

@@ -1,0 +1,13 @@
+---
+description: Utwórz nowy Architecture Decision Record dla tego projektu
+argument-hint: [krótki opis decyzji]
+---
+
+Użytkownik chce udokumentować decyzję architektoniczną: $ARGUMENTS
+
+1. Przejrzyj `docs/adr/README.md`, żeby ustalić numer kolejnego ADR (kolejny wolny numer, 4 cyfry, np. `0007`).
+2. Przeczytaj `docs/adr/template.md` i użyj go jako struktury.
+3. Jeśli kontekst/konsekwencje nie są jasne z `$ARGUMENTS`, dopytaj użytkownika zanim zapiszesz plik — nie zgaduj istotnych decyzji technicznych.
+4. Zapisz nowy plik jako `docs/adr/NNNN-krotki-tytul-kebab-case.md` z sekcjami: Status (Zaakceptowana), Data (dzisiejsza), Kontekst, Decyzja, Konsekwencje.
+5. Dopisz wiersz do tabeli w `docs/adr/README.md`.
+6. Jeśli decyzja jest wystarczająco istotna, zaproponuj też aktualizację `state.md` przez `/update-state` (ale nie rób tego automatycznie — zapytaj).

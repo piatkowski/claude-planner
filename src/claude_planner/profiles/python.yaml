@@ -1,0 +1,30 @@
+id: python
+name: "Python (aplikacje / skrypty / biblioteki)"
+description: >
+  Ogólny profil dla projektów, których rdzeniem jest Python — CLI, biblioteki,
+  automatyzacje, backend niekoniecznie webowy.
+languages: ["Python"]
+frameworks: ["Typer/Click", "FastAPI", "Django", "pytest"]
+extra_agents: []
+skills:
+  - name: "python-project-conventions"
+    description: "Konwencje struktury projektu i zarządzania zależnościami w Pythonie."
+    when_to_use: "Przy zakładaniu struktury repo lub dodawaniu nowego modułu."
+    guidance: >
+      Layout src/, jawny plik pyproject.toml, zarządzanie zależnościami przez
+      uv/poetry, typowanie (mypy/pyright), lintowanie (ruff).
+  - name: "python-testing-conventions"
+    description: "Konwencje testowania w Pythonie."
+    when_to_use: "Przy pisaniu testów lub konfiguracji CI."
+    guidance: >
+      pytest jako standard, fixtures zamiast setUp, testy parametryzowane dla
+      logiki z wieloma wariantami, pokrycie mierzone ale nie fetyszyzowane.
+conventions_hints: >
+  src layout, jawne typowanie publicznego API, docstringi tylko tam gdzie
+  faktycznie potrzebne (nie z automatu).
+testing_hints: >
+  pytest + pytest-mock, testy jednostkowe jako podstawa, testy integracyjne
+  tam gdzie jest realna granica systemu (DB, sieć, filesystem).
+claude_hints: >
+  Domyślny/uzupełniający profil dla wszystkiego co ma rdzeń w Pythonie; często
+  łączony z innymi profilami (np. backend-api, ai-ml).

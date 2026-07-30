@@ -1,0 +1,47 @@
+# {{ project_name }}
+
+Projekt dla klienta: **{{ client_name }}**
+Środowisko wygenerowane przez `claude-planner` ({{ generated_at }}).
+
+## Profile technologiczne
+
+{% for profile in profiles -%}
+- **{{ profile.name }}** — {{ profile.description.strip() }}
+{% endfor %}
+
+## Kluczowe dokumenty
+
+- Wizja produktu: `docs/vision.md`
+- Backlog / PRD: `docs/prd.md`
+- Roadmapa: `docs/roadmap.md`
+- Decyzje architektoniczne: `docs/adr/` (patrz `docs/adr/README.md`)
+- Standardy kodowania: `docs/coding-standards.md`
+- Definition of Done: `docs/definition-of-done.md`
+- Strategia testów: `docs/test-strategy.md`
+- **Bieżący stan projektu**: `state.md`
+
+## Bieżący stan projektu
+
+`state.md` to JEDYNE źródło prawdy o aktualnym stanie projektu — jest NADPISYWANE
+w całości (nie dopisywany na końcu), żeby nie puchł z czasem. Zawsze zaczynaj pracę
+nad projektem od przeczytania `state.md`. Aktualizuj go WYŁĄCZNIE przez `/update-state`.
+
+## Agenci projektu
+
+{% for agent in agents -%}
+- `{{ agent.agent_id }}` — {{ agent.description }}
+{% endfor %}
+
+## Komendy
+
+{% for command in commands -%}
+- `/{{ command.command_id }}` — {{ command.description }}
+{% endfor %}
+
+## Zasady pracy z tym repo
+
+- Zmiany architektoniczne o wysokim koszcie zmiany dokumentuj jako ADR (`/new-adr`).
+- Roadmapę aktualizuj świadomie przez `/update-roadmap`, nie edytuj jej przypadkowo przy okazji innych zmian.
+- Trzymaj się `docs/coding-standards.md` i `docs/definition-of-done.md` dla tego stacku.
+- Materiały źródłowe od klienta (spec, makiety, schemat bazy) NIE są częścią tego repo —
+  żyją poza nim; jeśli potrzebujesz do nich wrócić, zapytaj o ścieżkę do folderu intake.

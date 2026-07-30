@@ -1,0 +1,21 @@
+id: generic
+name: "Generyczny (fallback)"
+description: >
+  Używany, gdy żaden gotowy profil nie pasuje albo jako start dla stacku, który
+  doczeka się dedykowanego profilu później. Claude dostosowuje szczegóły
+  opisowo na podstawie wywiadu, zamiast opierać się na gotowych konwencjach.
+languages: []
+frameworks: []
+extra_agents: []
+skills: []
+conventions_hints: >
+  Brak z góry narzuconych konwencji — wyprowadź je z odpowiedzi w wywiadzie
+  (szczególnie z etapu Architekt/Tech Lead i Backend/Frontend Developer) i z
+  materiałów w folderze intake.
+testing_hints: >
+  Zaproponuj minimalną, rozsądną strategię testów adekwatną do opisanego
+  stacku, nawet jeśli nie ma dla niego dedykowanego profilu.
+claude_hints: >
+  To profil fallback — nie zgaduj technologii na sztywno. Jeśli wywiad i
+  materiały nie precyzują wystarczająco stacku, jawnie zaznacz to jako otwartą
+  kwestię (open question) w wygenerowanych dokumentach zamiast fabrykować szczegóły.

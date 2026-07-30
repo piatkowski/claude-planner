@@ -1,0 +1,36 @@
+id: backend-api
+name: "Backend API / Mikroserwisy"
+description: >
+  Czysto backendowy projekt (REST/GraphQL/RPC), pojedynczy serwis lub zestaw
+  mikroserwisów, bez własnego frontendu w tym repo.
+languages: ["Python", "TypeScript", "Go", "Java"]
+frameworks: ["FastAPI", "Django REST Framework", "NestJS", "Spring Boot", "Go net/http"]
+extra_agents:
+  - id: service-boundary-reviewer
+    name: "Service Boundary Reviewer"
+    description: "Pilnuje granic między serwisami/modułami i unikania rozlewania się odpowiedzialności."
+    focus: >
+      Ocenia, czy nowa funkcjonalność trafia do właściwego serwisu/modułu,
+      wychwytuje niejawne sprzężenia i cykliczne zależności między serwisami.
+skills:
+  - name: "service-communication-conventions"
+    description: "Konwencje komunikacji między serwisami (sync/async)."
+    when_to_use: "Przy projektowaniu integracji między serwisami lub z systemami zewnętrznymi."
+    guidance: >
+      Jawny wybór sync (REST/gRPC) vs async (kolejka/event) per przypadek,
+      idempotencja operacji, obsługa timeoutów i retry z backoffem.
+  - name: "observability-baseline"
+    description: "Minimalny standard logowania, metryk i tracingu dla serwisu."
+    when_to_use: "Przy tworzeniu nowego serwisu lub endpointu."
+    guidance: >
+      Strukturalne logi, correlation id propagowany między serwisami, health
+      check i podstawowe metryki (latencja, error rate) od pierwszego dnia.
+conventions_hints: >
+  Jeden serwis = jeden jasno opisany bounded context; wspólne kontrakty API
+  (OpenAPI/proto) trzymane jawnie w repo i wersjonowane.
+testing_hints: >
+  Testy kontraktowe między serwisami, testy jednostkowe logiki domenowej,
+  testy integracyjne z realną bazą/kolejką (kontenery testowe).
+claude_hints: >
+  Backend-only — nie generuj żadnych artefaktów frontendowych. Skup się na
+  granicach serwisów, kontraktach API i niezawodności.

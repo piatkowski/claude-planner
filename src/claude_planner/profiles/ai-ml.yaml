@@ -1,0 +1,37 @@
+id: ai-ml
+name: "AI / ML Engineering"
+description: >
+  Projekty z komponentem AI/ML: modele, pipeline'y danych, integracje z LLM,
+  systemy RAG — jako część lub rdzeń produktu.
+languages: ["Python"]
+frameworks: ["PyTorch", "scikit-learn", "LangChain/LlamaIndex", "Anthropic/OpenAI SDK"]
+extra_agents:
+  - id: eval-guardian
+    name: "Eval / Quality Guardian"
+    description: "Pilnuje, żeby zmiany w promptach/modelach/pipeline'ach danych miały mierzalną ewaluację."
+    focus: >
+      Wymaga zestawu eval przed zmianą promptu/modelu, śledzi regresje jakości,
+      pilnuje kosztu i latencji jako wymiarów jakości równorzędnych z trafnością.
+skills:
+  - name: "prompt-engineering-conventions"
+    description: "Konwencje wersjonowania i testowania promptów."
+    when_to_use: "Przy tworzeniu lub zmianie promptów systemowych."
+    guidance: >
+      Prompty jako wersjonowane artefakty (nie hardcodowane inline bez śladu),
+      zestaw przykładów regresyjnych, jawne rozdzielenie danych systemowych
+      od danych użytkownika w promptach.
+  - name: "data-pipeline-conventions"
+    description: "Konwencje pipeline'ów danych i przygotowania datasetów."
+    when_to_use: "Przy pracy z danymi treningowymi/ewaluacyjnymi lub źródłami do RAG."
+    guidance: >
+      Reprodukowalność (wersjonowanie danych/snapshotów), jawne źródła i
+      licencje danych, walidacja jakości danych przed użyciem.
+conventions_hints: >
+  Rozdzielenie kodu produkcyjnego (serwowanie) od eksperymentów/notebooków;
+  eksperymenty logowane w spójny sposób (np. wpisy w state.md/ADR dla decyzji o modelu).
+testing_hints: >
+  Zestaw eval jako część CI dla zmian w promptach/modelach, testy jednostkowe
+  dla kodu okalającego (parsing, walidacja, integracje), monitoring driftu jakości.
+claude_hints: >
+  Traktuj decyzje o wyborze modelu/dostawcy LLM oraz architekturze RAG jako
+  kandydatów na ADR — to decyzje o wysokim koszcie zmiany.
