@@ -28,6 +28,9 @@ skills:
       Preferuj utrzymywane biblioteki Expo/community przed pisaniem własnego
       mostka natywnego; jeśli własny moduł jest konieczny, udokumentuj to
       jako ADR (koszt utrzymania dwóch platform natywnych).
+setup_commands:
+  - "npm install"
+  - "npx pod-install (na macOS, jeśli projekt wspiera iOS)"
 conventions_hints: >
   Rozdział na warstwę UI (komponenty prezentacyjne), nawigację i logikę
   biznesową/integracje API; jawna decyzja Expo (managed/EAS) vs bare

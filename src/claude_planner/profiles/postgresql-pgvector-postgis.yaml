@@ -34,6 +34,8 @@ skills:
     guidance: >
       Jawny układ współrzędnych (SRID) używany w projekcie, indeksy GiST na
       kolumnach geometrycznych, walidacja poprawności geometrii przy zapisie.
+setup_commands:
+  - "Upewnij się, że lokalna instancja PostgreSQL ma zainstalowane rozszerzenia pgvector/postgis (np. obraz kontenera z tymi rozszerzeniami: pgvector/pgvector, postgis/postgis)"
 conventions_hints: >
   Ten profil zwykle NIE jest wybierany samodzielnie — łączony z profilem
   aplikacyjnym (web-fullstack, backend-api, ai-ml), dokłada sekcje o bazie danych.

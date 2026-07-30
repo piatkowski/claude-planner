@@ -1,0 +1,115 @@
+# Workflow: jak pracować z Claude Code w tym projekcie
+
+Projekt: **{{ project_name }}** (klient: {{ client_name }}) — środowisko wygenerowane
+{{ generated_at }} przez `claude-planner`. Ten dokument to konkretna instrukcja "od A do Z":
+od otwarcia repo do wdrożenia, z użyciem DOKŁADNIE tych agentów/komend/skilli, które
+zostały wygenerowane dla tego projektu (nie ogólny poradnik).
+
+## 0. Zanim zaczniesz
+
+Profile technologiczne tego projektu:
+{% for profile in profiles %}
+- **{{ profile.name }}** — {{ profile.description.strip() }}
+{% endfor %}
+
+Przeczytaj w tej kolejności: `docs/vision.md` → `docs/roadmap.md` → `docs/adr/README.md`
+({{ adr_count }} zapisanych decyzji) → `state.md`. To da Ci pełny kontekst biznesowy
+i techniczny, zanim otworzysz `claude`.
+
+## 1. Pierwsze uruchomienie: środowisko deweloperskie i LSP
+
+```
+claude
+```
+
+Otwórz sesję w katalogu tego repo i jako pierwszą rzecz uruchom:
+
+```
+/setup-dev-environment
+```
+
+To zainstaluje toolchain/zależności wybranego stacku — bez tego Claude Code nie ma
+z czego uruchomić code intelligence (LSP) dla tego projektu. Po zakończeniu otwórz
+nową sesję, żeby LSP się poprawnie zainicjował. `SessionStart` hook przy każdym
+starcie sesji przypomina Ci bieżący stan projektu z `state.md`.
+
+## 2. Agenci dostępni w tym projekcie
+
+Każdy agent to rola software house'u wyspecjalizowana pod ten konkretny projekt
+(zna ustalenia z wywiadu discovery dla swojej roli). Wywołaj agenta wprost
+(`@{{ agents[0].agent_id if agents else 'nazwa-agenta' }}`) albo pozwól Claude
+dobrać właściwego automatycznie na podstawie opisu zadania.
+
+{% for agent in agents %}
+- **`{{ agent.agent_id }}`** — {{ agent.description }}
+{% endfor %}
+
+## 3. Skille (konwencje stacku) aktywne w tym projekcie
+
+Skille ładują się automatycznie, gdy zadanie tego wymaga — nie musisz ich wywoływać
+ręcznie, ale warto wiedzieć, jakie konwencje obowiązują:
+
+{% for skill in skills %}
+- **`{{ skill.skill_id }}`** ({{ skill.profile_name }}) — {{ skill.description }}
+  _Kiedy się aktywuje:_ {{ skill.when_to_use }}
+{% endfor %}
+{% if not skills %}
+(ten projekt nie ma dodatkowych skilli specyficznych dla stacku poza bazowymi zasadami z `docs/coding-standards.md`)
+{% endif %}
+
+## 4. Codzienna pętla pracy (development loop)
+
+1. **Zacznij sesję od `state.md`** — Claude Code czyta go automatycznie (patrz `CLAUDE.md`),
+   ale Ty też przejrzyj go, żeby wiedzieć, co jest bieżącym priorytetem.
+2. **Wybierz zadanie** z `docs/prd.md` (backlog) zgodnie z fazą w `docs/roadmap.md`.
+3. **Implementuj** — trzymaj się `docs/coding-standards.md` (konwencje kodu tego stacku)
+   i `docs/definition-of-done.md` (kiedy zadanie jest naprawdę skończone).
+4. **Zależności**: jeśli zadanie wymaga nowej biblioteki, NIE pozwól Claude zgadywać
+   wersji — hook `.claude/hooks/check-pinned-dependency.py` i tak zablokuje instalację
+   z "na sztywno" wpisaną wersją. Claude albo zainstaluje najnowszą (bez przypięcia),
+   albo sam sprawdzi dostępne wersje komendą menedżera pakietów, albo zapyta Ciebie.
+5. **Testuj** zgodnie z `docs/test-strategy.md`.
+6. **Decyzje architektoniczne o wysokim koszcie zmiany** (wybór technologii, kluczowy
+   wzorzec integracji) dokumentuj od razu: `/new-adr`. Drobniejsze ustalenia: `/log-decision`.
+7. **Code review**: poproś Claude o przegląd zmian względem `docs/coding-standards.md`
+   i `docs/definition-of-done.md` przed commitem/PR.
+
+## 5. Śledzenie postępu
+
+- `/daily-standup` — krótkie podsumowanie (zrobione / w trakcie / blockery) na podstawie
+  `state.md`, `docs/roadmap.md` i ostatnich commitów. Wyświetlane w czacie, nic nie zapisuje.
+- `/sprint-review` — podsumowanie zakończonego etapu względem `docs/roadmap.md`, z
+  propozycją aktualizacji roadmapy/state.
+- `/update-roadmap` — świadoma aktualizacja `docs/roadmap.md` (nie edytuj go ręcznie
+  przy okazji innych zmian).
+- `/update-state` — **jedyny** sposób aktualizacji `state.md`. Zawsze NADPISUJE cały
+  plik (nie dopisuje), żeby nie puchł z czasem. Uruchamiaj po każdym istotnym kroku
+  (zakończony feature, zmiana priorytetów, nowy blocker).
+
+## 6. Pełna lista komend tego projektu
+
+{% for command in commands %}
+- `/{{ command.command_id }}` — {{ command.description }}
+{% endfor %}
+
+## 7. Wdrożenie
+
+Ten generator dostarcza wyłącznie artefakty planistyczne — środowisko Claude Code,
+nie szkielet kodu ani pipeline CI/CD. Zanim wdrożysz projekt na produkcję:
+
+1. Sprawdź `docs/roadmap.md` — wdrożenie powinno być jawnym etapem/kamieniem milowym,
+   nie efektem ubocznym ostatniego commita.
+2. Upewnij się, że kryteria z `docs/definition-of-done.md` są spełnione dla całego
+   zakresu wydania, nie tylko pojedynczego zadania.
+3. Jeśli w `docs/adr/` są decyzje dotyczące środowisk (dev/staging/prod) lub strategii
+   wdrożenia — zastosuj się do nich; jeśli ich brak, a decyzja o wdrożeniu jest
+   nietrywialna, udokumentuj ją przez `/new-adr` PRZED wdrożeniem, nie po.
+4. Po wdrożeniu uruchom `/update-state`, żeby `state.md` odzwierciedlał nową fazę
+   projektu (np. "Wdrożono MVP na produkcję").
+
+## 8. Gdy coś nie pasuje do tego workflow
+
+Ten plik i `CLAUDE.md` opisują domyślny proces wygenerowany dla tego projektu — nie
+są wykute w kamieniu. Jeśli proces przestaje pasować do rzeczywistości projektu,
+zaktualizuj `docs/coding-standards.md`/`docs/test-strategy.md` świadomie (np. przez
+rozmowę z Claude i ręczną edycję), zamiast po cichu je ignorować.

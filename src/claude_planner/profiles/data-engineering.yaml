@@ -29,6 +29,9 @@ skills:
       Jawny podział na warstwy (raw -> staging -> mart/analityczna), nazwy
       kolumn i tabel spójne i udokumentowane, transformacje wersjonowane
       (np. modele dbt) zamiast ad hoc SQL bez śladu w repo.
+setup_commands:
+  - "uv pip install -e '.[dev]' (albo pip install -r requirements.txt)"
+  - "dbt deps (jeśli projekt używa dbt)"
 conventions_hints: >
   Pipeline'y jako kod wersjonowany w repo (DAG-i, modele dbt), jawne
   planowanie/orkiestracja (Airflow/Dagster/Prefect) opisane w dokumentacji,

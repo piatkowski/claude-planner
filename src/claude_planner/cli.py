@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import enum
 from pathlib import Path
 
 import typer
@@ -11,18 +12,36 @@ from rich.table import Table
 
 from claude_planner import __version__
 from claude_planner.claude_client import ClaudeCLIError, ClaudeNotFoundError, ensure_claude_available
-from claude_planner.profiles import load_all_profiles
+from claude_planner.profile_generator import generate_profile, profile_to_yaml
+from claude_planner.profiles import DEFAULT_CUSTOM_PROFILES_DIR, load_all_profiles
 from claude_planner.scaffold import ScaffoldError, run_init
+from claude_planner.textutils import slugify
 
 app = typer.Typer(
     name="claude-planner",
     help="Generator żywego środowiska Claude Code do planowania projektów IT.",
     no_args_is_help=True,
 )
-profiles_app = typer.Typer(help="Przeglądanie dostępnych profili stacków.")
+profiles_app = typer.Typer(help="Przeglądanie i tworzenie profili stacków.")
 app.add_typer(profiles_app, name="profiles")
 
 console = Console()
+
+
+class ModelChoice(str, enum.Enum):
+    sonnet = "sonnet"
+    opus = "opus"
+
+
+PROFILES_DIR_OPTION = typer.Option(
+    None,
+    "--profiles-dir",
+    help=f"Katalog z własnymi profilami (oprócz wbudowanych). Domyślnie: {DEFAULT_CUSTOM_PROFILES_DIR}",
+)
+
+
+def _resolve_profiles_dir(profiles_dir: Path | None) -> Path:
+    return profiles_dir or DEFAULT_CUSTOM_PROFILES_DIR
 
 
 def _version_callback(value: bool) -> None:
@@ -52,9 +71,9 @@ def doctor() -> None:
 
 
 @profiles_app.command("list")
-def profiles_list() -> None:
-    """Wypisz dostępne profile stacków."""
-    profiles = load_all_profiles()
+def profiles_list(profiles_dir: Path = PROFILES_DIR_OPTION) -> None:
+    """Wypisz dostępne profile stacków (wbudowane + własne)."""
+    profiles = load_all_profiles(extra_dir=_resolve_profiles_dir(profiles_dir))
     table = Table(title="Profile stacków")
     table.add_column("ID", style="cyan")
     table.add_column("Nazwa")
@@ -66,14 +85,60 @@ def profiles_list() -> None:
 
 
 @profiles_app.command("show")
-def profiles_show(profile_id: str) -> None:
+def profiles_show(profile_id: str, profiles_dir: Path = PROFILES_DIR_OPTION) -> None:
     """Pokaż szczegóły jednego profilu."""
-    profiles = load_all_profiles()
+    profiles = load_all_profiles(extra_dir=_resolve_profiles_dir(profiles_dir))
     profile = profiles.get(profile_id)
     if not profile:
         console.print(f"[red]Nieznany profil: {profile_id}[/red]")
         raise typer.Exit(code=1)
     console.print(profile.model_dump())
+
+
+@profiles_app.command("create")
+def profiles_create(
+    stack_description: str = typer.Argument(
+        ..., help='Opis stacku, np. "Ruby on Rails + Sidekiq + PostgreSQL".'
+    ),
+    profile_id: str = typer.Option(
+        None, "--id", help="ID profilu (kebab-case); domyślnie wyprowadzone z opisu."
+    ),
+    profiles_dir: Path = PROFILES_DIR_OPTION,
+    model: ModelChoice = typer.Option(
+        None, "--model", help="Model Claude do wygenerowania profilu (sonnet/opus)."
+    ),
+    force: bool = typer.Option(False, "--force", help="Nadpisz profil, jeśli już istnieje."),
+) -> None:
+    """Wygeneruj nowy profil stacku przy pomocy Claude i zapisz go jako YAML."""
+    try:
+        ensure_claude_available()
+    except ClaudeNotFoundError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from exc
+
+    resolved_id = profile_id or slugify(stack_description, fallback="nowy-profil")
+    target_dir = _resolve_profiles_dir(profiles_dir)
+    target_path = target_dir / f"{resolved_id}.yaml"
+
+    if target_path.exists() and not force:
+        if not Confirm.ask(f"Profil '{resolved_id}' już istnieje w {target_path}. Nadpisać?", default=False):
+            raise typer.Exit()
+
+    chosen_model = model or ModelChoice(Prompt.ask("Model Claude", choices=["sonnet", "opus"], default="sonnet"))
+
+    console.print(f"Generuję profil '{resolved_id}' dla stacku: {stack_description} (model: {chosen_model.value})...")
+    try:
+        profile = generate_profile(stack_description, resolved_id, model=chosen_model.value)
+    except ClaudeCLIError as exc:
+        console.print(f"[red]Błąd generowania profilu: {exc}[/red]")
+        raise typer.Exit(code=1) from exc
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(profile_to_yaml(profile), encoding="utf-8")
+
+    console.rule("[bold green]Gotowe")
+    console.print(f"Zapisano profil: {target_path}")
+    console.print(f"Użyj go przez: claude-planner init --profile {resolved_id} --profiles-dir {target_dir}")
 
 
 def _select_profiles(available_ids: list[str]) -> list[str]:
@@ -100,7 +165,10 @@ def init(
     profile: list[str] = typer.Option(
         None, "--profile", "-p", help="ID profilu technologicznego (można podać kilka razy)."
     ),
-    model: str = typer.Option(None, "--model", help="Model Claude do użycia (opcjonalnie)."),
+    profiles_dir: Path = PROFILES_DIR_OPTION,
+    model: ModelChoice = typer.Option(
+        None, "--model", help="Model Claude do użycia w wywiadzie i generowaniu (sonnet/opus)."
+    ),
 ) -> None:
     """Utwórz nowe repo projektu i wygeneruj kompletne środowisko planistyczne."""
     try:
@@ -119,15 +187,19 @@ def init(
         )
         intake = Path(intake_raw) if intake_raw.strip() else None
 
+    resolved_profiles_dir = _resolve_profiles_dir(profiles_dir)
     profile_ids = list(profile) if profile else []
     if not profile_ids:
-        available = load_all_profiles()
+        available = load_all_profiles(extra_dir=resolved_profiles_dir)
         profile_ids = _select_profiles(list(available.keys()))
+
+    if model is None:
+        model = ModelChoice(Prompt.ask("Model Claude", choices=["sonnet", "opus"], default="sonnet"))
 
     console.print(
         f"\n[bold]Projekt:[/bold] {project_name}  [bold]Klient:[/bold] {client_name}\n"
         f"[bold]Output:[/bold] {output}  [bold]Profile:[/bold] {', '.join(profile_ids)}\n"
-        f"[bold]Intake:[/bold] {intake or '(brak)'}\n"
+        f"[bold]Intake:[/bold] {intake or '(brak)'}  [bold]Model:[/bold] {model.value}\n"
     )
     if not Confirm.ask("Rozpocząć wywiad i generowanie środowiska?", default=True):
         raise typer.Exit()
@@ -139,8 +211,9 @@ def init(
             profile_ids=profile_ids,
             output_dir=output,
             intake_path=str(intake) if intake else None,
-            model=model,
+            model=model.value,
             console=console,
+            profiles_dir=resolved_profiles_dir,
         )
     except (ScaffoldError, ClaudeCLIError, KeyError) as exc:
         console.print(f"[red]Błąd: {exc}[/red]")

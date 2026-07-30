@@ -10,6 +10,7 @@ from claude_planner.claude_client import READ_ONLY_TOOLS, one_shot
 from claude_planner.models import ProjectBrief, StackProfile
 from claude_planner.roles import INTERVIEW_ROLES
 from claude_planner.templating import render
+from claude_planner.textutils import slugify
 
 ADR_LIST_SCHEMA = {
     "type": "object",
@@ -120,6 +121,13 @@ z profili:
 Dodatkowy kontekst dla wybranych profili:
 {claude_hints}
 
+Dodaj też sekcję "Zależności" z konkretną, stack-specyficzną instrukcją: przy
+dodawaniu nowej zależności NIGDY nie zgaduj (nie halucynuj) numeru wersji z
+pamięci — zawsze sprawdź realnie dostępną wersję komendą menedżera pakietów
+właściwą dla tego stacku (np. `npm view <pkg> versions`, `pip index versions
+<pkg>`, `composer show -a <pkg>`, `dart pub deps`) albo zapytaj użytkownika o
+dokładną wersję.
+
 Zwróć WYŁĄCZNIE treść dokumentu."""
     return _ask(brief, profiles, instruction, model=model)
 
@@ -155,19 +163,6 @@ faktycznie mają wysoki koszt zmiany; nie twórz ADR dla oczywistości."""
     return data.get("decisions", [])
 
 
-_PL_TRANSLIT = str.maketrans(
-    "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ",
-    "acelnoszzACELNOSZZ",
-)
-
-
-def _slugify(title: str) -> str:
-    ascii_title = title.translate(_PL_TRANSLIT)
-    slug = "-".join(ascii_title.lower().split())
-    slug = "".join(ch for ch in slug if ch.isalnum() or ch == "-")
-    return slug[:60].strip("-") or "decyzja"
-
-
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
@@ -181,7 +176,7 @@ def _write_adrs(docs_dir: Path, project_name: str, decisions: list[dict]) -> Non
     for i, decision in enumerate(decisions, start=1):
         number = f"{i:04d}"
         title = decision.get("title", f"Decyzja {number}").strip()
-        slug = _slugify(title)
+        slug = slugify(title, fallback="decyzja")
         filename = f"{number}-{slug}.md"
         content = render(
             "adr_entry.j2",
@@ -235,7 +230,8 @@ def _write_profile_agents(claude_dir: Path, profiles: list[StackProfile]) -> lis
     return written
 
 
-def _write_profile_skills(claude_dir: Path, profiles: list[StackProfile]) -> None:
+def _write_profile_skills(claude_dir: Path, profiles: list[StackProfile]) -> list[dict]:
+    written = []
     for profile in profiles:
         for skill in profile.skills:
             content = render(
@@ -246,6 +242,15 @@ def _write_profile_skills(claude_dir: Path, profiles: list[StackProfile]) -> Non
                 guidance=skill.guidance,
             )
             _write(claude_dir / "skills" / skill.name / "SKILL.md", content)
+            written.append(
+                {
+                    "skill_id": skill.name,
+                    "description": skill.description,
+                    "when_to_use": skill.when_to_use,
+                    "profile_name": profile.name,
+                }
+            )
+    return written
 
 
 def _write_commands(claude_dir: Path) -> list[dict]:
@@ -256,7 +261,21 @@ def _write_commands(claude_dir: Path) -> list[dict]:
     return written
 
 
+SETUP_COMMAND_DESCRIPTION = (
+    "Zainstaluj toolchain/zależności stacku (wymagane dla code intelligence / LSP)"
+)
+
+
+def _write_setup_command(claude_dir: Path, profiles: list[StackProfile]) -> dict:
+    content = render("command_setup_dev_environment.j2", profiles=profiles)
+    _write(claude_dir / "commands" / "setup-dev-environment.md", content)
+    return {"command_id": "setup-dev-environment", "description": SETUP_COMMAND_DESCRIPTION}
+
+
 def _write_settings(claude_dir: Path) -> None:
+    hook_script = render("hook_check_pinned_dependency.py.j2")
+    _write(claude_dir / "hooks" / "check-pinned-dependency.py", hook_script)
+
     settings = {
         "hooks": {
             "SessionStart": [
@@ -268,7 +287,18 @@ def _write_settings(claude_dir: Path) -> None:
                         }
                     ]
                 }
-            ]
+            ],
+            "PreToolUse": [
+                {
+                    "matcher": "Bash",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "python3 .claude/hooks/check-pinned-dependency.py",
+                        }
+                    ],
+                }
+            ],
         }
     }
     _write(claude_dir / "settings.json", json.dumps(settings, indent=2, ensure_ascii=False) + "\n")
@@ -306,8 +336,8 @@ def generate_environment(
     _write_adrs(docs_dir, brief.project_name, decisions)
 
     agents = _write_base_agents(claude_dir, brief) + _write_profile_agents(claude_dir, profiles)
-    _write_profile_skills(claude_dir, profiles)
-    commands = _write_commands(claude_dir)
+    skills = _write_profile_skills(claude_dir, profiles)
+    commands = _write_commands(claude_dir) + [_write_setup_command(claude_dir, profiles)]
     _write_settings(claude_dir)
 
     profile_names = ", ".join(p.name for p in profiles)
@@ -341,6 +371,20 @@ def generate_environment(
             profiles=profiles,
         ),
     )
+    _write(
+        output_dir / "WORKFLOW.md",
+        render(
+            "workflow.j2",
+            project_name=brief.project_name,
+            client_name=brief.client_name,
+            generated_at=generated_at,
+            profiles=profiles,
+            agents=agents,
+            commands=commands,
+            skills=skills,
+            adr_count=len(decisions),
+        ),
+    )
 
     return {
         "docs": ["vision.md", "prd.md", "roadmap.md", "coding-standards.md",
@@ -348,5 +392,5 @@ def generate_environment(
         "adr_count": len(decisions),
         "agents": [a["agent_id"] for a in agents],
         "commands": [c["command_id"] for c in commands],
-        "skills": [s.name for p in profiles for s in p.skills],
+        "skills": [s["skill_id"] for s in skills],
     }

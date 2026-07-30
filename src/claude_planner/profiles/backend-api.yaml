@@ -25,6 +25,8 @@ skills:
     guidance: >
       Strukturalne logi, correlation id propagowany między serwisami, health
       check i podstawowe metryki (latencja, error rate) od pierwszego dnia.
+setup_commands:
+  - "pip install -e '.[dev]' (Python) lub npm install (Node) lub go mod download (Go) lub mvn install (Java) — zależnie od wybranego języka"
 conventions_hints: >
   Jeden serwis = jeden jasno opisany bounded context; wspólne kontrakty API
   (OpenAPI/proto) trzymane jawnie w repo i wersjonowane.

@@ -29,6 +29,8 @@ skills:
       oddzielenie logiki (kontrolery/providery) od warstwy prezentacji,
       spójny design system (motyw, typografia, spacing) zamiast wartości
       "na sztywno" w widgetach.
+setup_commands:
+  - "flutter pub get"
 conventions_hints: >
   Struktura per-feature (features/<nazwa>/{ui,logic,data}) zamiast podziału
   czysto technicznego, jawna decyzja o zarządzaniu stanem udokumentowana

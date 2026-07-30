@@ -73,13 +73,17 @@ def run_init(
     intake_path: str | None,
     model: str | None,
     console: Console,
+    profiles_dir: Path | None = None,
 ) -> dict:
     if output_dir.exists() and any(output_dir.iterdir()):
         raise ScaffoldError(f"Katalog docelowy '{output_dir}' już istnieje i nie jest pusty.")
     if not profile_ids:
         raise ScaffoldError("Wybierz co najmniej jeden profil technologiczny (--profile).")
 
-    profiles = [get_profile(pid) for pid in profile_ids]
+    try:
+        profiles = [get_profile(pid, extra_dir=profiles_dir) for pid in profile_ids]
+    except KeyError as exc:
+        raise ScaffoldError(str(exc)) from exc
     output_dir.mkdir(parents=True, exist_ok=True)
 
     console.rule("[bold]Analiza materiałów od klienta")

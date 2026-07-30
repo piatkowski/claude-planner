@@ -33,6 +33,7 @@ class StackProfile(BaseModel):
     frameworks: list[str] = Field(default_factory=list)
     extra_agents: list[AgentSpec] = Field(default_factory=list)
     skills: list[SkillSpec] = Field(default_factory=list)
+    setup_commands: list[str] = Field(default_factory=list)
     conventions_hints: str = ""
     testing_hints: str = ""
     claude_hints: str = ""

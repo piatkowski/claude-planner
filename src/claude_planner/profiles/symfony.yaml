@@ -29,6 +29,8 @@ skills:
       Migracje generowane i recenzowane (nie ślepo commitowane), jawne
       indeksy i klucze obce w mapowaniu encji, unikanie logiki biznesowej
       w encjach ponad to co niezbędne (rich model tylko tam gdzie uzasadnione).
+setup_commands:
+  - "composer install"
 conventions_hints: >
   Standardowa struktura katalogów Symfony (src/Controller, src/Entity,
   src/Repository, src/Service), konfiguracja przez atrybuty/YAML zgodnie

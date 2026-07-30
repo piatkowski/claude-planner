@@ -1,0 +1,26 @@
+---
+description: Zainstaluj toolchain/zależności dla wybranego stacku (wymagane dla pełnego code intelligence / LSP)
+---
+
+Zainstaluj i skonfiguruj toolchain deweloperski dla tego projektu. Bez zainstalowanych
+zależności/SDK dla danego języka Claude Code nie ma z czego uruchomić code intelligence
+(language server) dla tego stacku — ten krok jest warunkiem, nie opcją.
+
+Komendy bootstrapujące per wybrany profil technologiczny:
+{% for profile in profiles %}
+
+### {{ profile.name }}
+{% if profile.setup_commands %}
+{% for cmd in profile.setup_commands %}
+- `{{ cmd }}`
+{% endfor %}
+{% else %}
+- (brak predefiniowanych komend dla tego profilu — ustal je z użytkownikiem na podstawie stacku)
+{% endif %}
+{% endfor %}
+
+Zasady:
+1. Zanim uruchomisz komendę instalującą jakąkolwiek zależność, sprawdź `.claude/hooks/check-pinned-dependency.py` — komendy z przypiętą wersją pakietu zostaną zablokowane. NIE zgaduj (nie halucynuj) wersji z pamięci; jeśli komenda wymaga wersji, zapytaj o nią użytkownika.
+2. Jeśli którakolwiek komenda wygląda na instalację globalną (poza katalogiem projektu, np. `npm install -g`, `pip install --user`, systemowe paczki), zapytaj użytkownika o potwierdzenie przed uruchomieniem.
+3. Uruchamiaj komendy po kolei i sprawdzaj kod wyjścia — jeśli któraś zawiedzie, zatrzymaj się i zapytaj użytkownika zamiast próbować obejść błąd na siłę.
+4. Po zakończeniu poinformuj użytkownika, że warto otworzyć nową sesję Claude Code, żeby code intelligence (LSP) dla tego stacku poprawnie się zainicjował.

@@ -26,6 +26,9 @@ skills:
     guidance: >
       Spójne nazewnictwo zasobów, jawne kody błędów, walidacja wejścia na
       granicy warstwy API, wersjonowanie breaking changes.
+setup_commands:
+  - "npm install (lub pnpm install / yarn install) w katalogu frontendu"
+  - "pip install -e '.[dev]' (backend Python) lub npm install (backend Node) — zależnie od wybranej technologii backendu"
 conventions_hints: >
   Podział na frontend/ i backend/ (lub apps/web + apps/api w monorepo), wspólny
   katalog na typy/kontrakty API współdzielone między warstwami.

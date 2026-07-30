@@ -29,6 +29,8 @@ skills:
       Jawny podział odpowiedzialności między agentami/krokami (unikanie
       jednego "wszystkomogącego" agenta), obsługa błędów/timeoutów na każdym
       kroku, logowanie decyzji agenta w sposób umożliwiający debugowanie.
+setup_commands:
+  - "uv pip install -e '.[dev]' (albo pip install -r requirements.txt)"
 conventions_hints: >
   Rozdzielenie kodu produkcyjnego (serwowanie) od eksperymentów, prompty i
   definicje narzędzi (tool schemas) jako wersjonowane artefakty w repo, nie

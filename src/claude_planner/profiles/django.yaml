@@ -28,6 +28,8 @@ skills:
       Serializery jako jedyne miejsce walidacji/transformacji danych API,
       jawna wersjonowanie API jeśli przewidywane są breaking changes,
       permissions/throttling ustawiane świadomie per endpoint.
+setup_commands:
+  - "uv pip install -e '.[dev]' (albo pip install -r requirements.txt)"
 conventions_hints: >
   Standardowa struktura Django (osobne apps per domena), settings podzielone
   per środowisko (base/dev/prod), jawna decyzja: server-rendered (templates)

@@ -8,6 +8,7 @@ languages: []
 frameworks: []
 extra_agents: []
 skills: []
+setup_commands: []
 conventions_hints: >
   Brak z góry narzuconych konwencji — wyprowadź je z odpowiedzi w wywiadzie
   (szczególnie z etapu Architekt/Tech Lead i Backend/Frontend Developer) i z

@@ -25,6 +25,8 @@ skills:
     guidance: >
       Zgodność z wytycznymi platformy (HIG dla iOS, Material dla Android),
       dostępność (rozmiary dotykowe, screen readery), obsługa różnych rozmiarów ekranu.
+setup_commands:
+  - "npm install (React Native) lub flutter pub get / dart pub get (Flutter) — zależnie od wybranej technologii"
 conventions_hints: >
   Jasny podział na warstwę UI, logikę biznesową i integracje natywne;
   konfiguracja per-platform trzymana osobno i jawnie opisana.

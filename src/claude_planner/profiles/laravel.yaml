@@ -29,6 +29,9 @@ skills:
       Testy feature na realnych endpointach z bazą testową (RefreshDatabase),
       fabryki (Factories) zamiast ręcznego seedowania w testach, testy
       jednostkowe dla logiki w klasach Action/Service.
+setup_commands:
+  - "composer install"
+  - "npm install (jeśli używany Vite/Mix do assetów)"
 conventions_hints: >
   Standardowa struktura Laravela (app/Models, app/Http/Controllers,
   app/Actions lub app/Services dla logiki domenowej), jawna decyzja o

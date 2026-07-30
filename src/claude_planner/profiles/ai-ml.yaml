@@ -26,6 +26,8 @@ skills:
     guidance: >
       Reprodukowalność (wersjonowanie danych/snapshotów), jawne źródła i
       licencje danych, walidacja jakości danych przed użyciem.
+setup_commands:
+  - "uv pip install -e '.[dev]' (albo pip install -r requirements.txt)"
 conventions_hints: >
   Rozdzielenie kodu produkcyjnego (serwowanie) od eksperymentów/notebooków;
   eksperymenty logowane w spójny sposób (np. wpisy w state.md/ADR dla decyzji o modelu).

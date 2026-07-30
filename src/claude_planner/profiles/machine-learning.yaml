@@ -28,6 +28,8 @@ skills:
       Wersjonowanie wdrożonych modeli (jawny numer/tag), monitoring driftu
       danych wejściowych i jakości predykcji na produkcji, strategia
       rollbacku do poprzedniej wersji modelu.
+setup_commands:
+  - "uv pip install -e '.[dev]' (albo pip install -r requirements.txt)"
 conventions_hints: >
   Rozdzielenie kodu eksperymentalnego (notebooki/skrypty badawcze) od kodu
   produkcyjnego (serwowanie, pipeline treningowy jako kod, nie notebook),

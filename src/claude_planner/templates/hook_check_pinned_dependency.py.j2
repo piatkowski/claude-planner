@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""PreToolUse hook (Bash): blokuje instalację zależności z "przypiętą" wersją.
+
+Claude nie może wiedzieć na pewno, jaka jest AKTUALNA wersja pakietu w
+rejestrze — numer wersji podany "z pamięci" to zgadywanie (halucynacja).
+Ten hook wymusza, żeby przed instalacją z konkretną wersją Claude albo
+usunął przypięcie (najnowsza wersja z rejestru), albo sprawdził realnie
+dostępne wersje komendą menedżera pakietów, albo zapytał o to użytkownika.
+
+Wygenerowane przez claude-planner — bezpieczne do edycji/dostrojenia w tym repo.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+
+PATTERNS: list[tuple[str, str]] = [
+    (r"\b(npm|pnpm|yarn)\s+(install|add|i)\b[^|;&\n]*@\d", "npm/pnpm/yarn"),
+    (r"\bpip3?\s+install\b[^|;&\n]*==\s*\d", "pip"),
+    (r"\bpoetry\s+add\b[^|;&\n]*[@=]=?\s*\d", "poetry"),
+    (r"\buv\s+(pip\s+install|add)\b[^|;&\n]*==\s*\d", "uv"),
+    (r"\bcomposer\s+require\b[^|;&\n]*:\s*[\^~]?\d", "composer"),
+    (r"\b(dart|flutter)\s+pub\s+add\b[^|;&\n]*:\s*[\^~]?\d", "dart/flutter pub"),
+    (r"\bgo\s+get\b[^|;&\n]*@v?\d", "go get"),
+    (r"\bgem\s+install\b[^|;&\n]*-v\s*\d", "gem"),
+    (r"\bcargo\s+add\b[^|;&\n]*@\d", "cargo"),
+]
+
+MESSAGE = """BLOKADA (hook check-pinned-dependency): wykryto instalację zależności
+z przypiętą wersją ({ecosystem}) w komendzie:
+  {command}
+
+NIE zgaduj (nie halucynuj) numeru wersji z pamięci treningowej — mogła się
+zmienić od czasu Twoich danych treningowych. Zamiast tego zrób jedno z:
+1. Usuń przypiętą wersję i pozwól menedżerowi pakietów pobrać najnowszą
+   (np. bez "==X.Y.Z" / "@X.Y.Z" / ":^X.Y.Z").
+2. Sprawdź realnie dostępne wersje komendą właściwą dla tego ekosystemu
+   (np. npm view <pkg> versions, pip index versions <pkg>,
+   composer show -a <pkg>, dart pub deps, go list -m -versions <pkg>).
+3. Zapytaj użytkownika, jaką dokładnie wersję chce zainstalować, i poczekaj
+   na jego odpowiedź zanim ponownie uruchomisz tę komendę."""
+
+
+def main() -> int:
+    try:
+        payload = json.load(sys.stdin)
+    except (json.JSONDecodeError, ValueError):
+        return 0
+
+    if payload.get("tool_name") != "Bash":
+        return 0
+
+    command = (payload.get("tool_input") or {}).get("command", "")
+    if not command:
+        return 0
+
+    for pattern, ecosystem in PATTERNS:
+        if re.search(pattern, command):
+            print(MESSAGE.format(ecosystem=ecosystem, command=command), file=sys.stderr)
+            return 2
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

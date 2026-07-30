@@ -77,6 +77,28 @@ def test_generate_environment_writes_full_structure(tmp_path, monkeypatch):
     assert (output_dir / ".claude" / "skills" / "frontend-component-conventions" / "SKILL.md").exists()
     assert (output_dir / ".claude" / "settings.json").exists()
 
+    assert (output_dir / ".claude" / "commands" / "setup-dev-environment.md").exists()
+    setup_cmd = (output_dir / ".claude" / "commands" / "setup-dev-environment.md").read_text(
+        encoding="utf-8"
+    )
+    assert "npm install" in setup_cmd
+    assert "Web Fullstack" in setup_cmd
+
+    assert (output_dir / ".claude" / "hooks" / "check-pinned-dependency.py").exists()
+    settings = json.loads((output_dir / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    pre_tool_use = settings["hooks"]["PreToolUse"]
+    assert pre_tool_use[0]["matcher"] == "Bash"
+    assert "check-pinned-dependency.py" in pre_tool_use[0]["hooks"][0]["command"]
+
+    assert "setup-dev-environment" in summary["commands"]
+
+    assert (output_dir / "WORKFLOW.md").exists()
+    workflow = (output_dir / "WORKFLOW.md").read_text(encoding="utf-8")
+    assert "product-manager" in workflow
+    assert "/update-state" in workflow
+    assert "frontend-component-conventions" in workflow
+    assert "/setup-dev-environment" in workflow
+
 
 def test_state_md_contains_profile_names_and_is_overwrite_style(tmp_path, monkeypatch):
     monkeypatch.setattr("claude_planner.generator.one_shot", _fake_one_shot)

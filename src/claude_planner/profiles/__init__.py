@@ -11,6 +11,8 @@ from claude_planner.models import StackProfile
 
 _PROFILES_DIR = resources.files("claude_planner.profiles")
 
+DEFAULT_CUSTOM_PROFILES_DIR = Path.home() / ".claude-planner" / "profiles"
+
 
 def _iter_profile_files():
     for entry in _PROFILES_DIR.iterdir():

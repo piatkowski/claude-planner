@@ -28,6 +28,9 @@ skills:
       Nie nadpisywać rdzenia checkout bezpośrednio, testować z realnymi bramkami
       płatności na środowisku staging, pilnować zgodności z podatkami/walutami
       klienta.
+setup_commands:
+  - "composer install"
+  - "npm install (jeśli motyw/wtyczka używa build stepu JS)"
 conventions_hints: >
   Środowisko lokalne odtwarzalne (np. przez kontener), wersjonowanie wtyczek/motywu
   w repo, baza danych i media NIE w repo (osobna strategia synchronizacji).

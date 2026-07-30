@@ -19,6 +19,8 @@ skills:
     guidance: >
       pytest jako standard, fixtures zamiast setUp, testy parametryzowane dla
       logiki z wieloma wariantami, pokrycie mierzone ale nie fetyszyzowane.
+setup_commands:
+  - "uv pip install -e '.[dev]' (albo pip install -e '.[dev]')"
 conventions_hints: >
   src layout, jawne typowanie publicznego API, docstringi tylko tam gdzie
   faktycznie potrzebne (nie z automatu).
