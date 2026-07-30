@@ -1,0 +1,44 @@
+id: machine-learning
+name: "Machine Learning"
+description: >
+  Trenowanie, ewaluacja i wdrażanie klasycznych modeli ML/DL (poza
+  kontekstem systemów LLM/RAG — zobacz profil `rag-ai-agents` dla tego drugiego).
+languages: ["Python"]
+frameworks: ["PyTorch/TensorFlow", "scikit-learn", "MLflow", "FastAPI (serving)"]
+extra_agents:
+  - id: model-eval-guardian
+    name: "Model Evaluation Guardian"
+    description: "Pilnuje, żeby każda zmiana modelu miała mierzalną, porównywalną ewaluację."
+    focus: >
+      Wymaga jasno zdefiniowanych metryk sukcesu przed treningiem (nie po
+      fakcie), porównanie nowego modelu z baseline'em na tym samym zbiorze
+      testowym, jawne śledzenie regresji jakości i kosztu/latencji inferencji.
+skills:
+  - name: "experiment-reproducibility-conventions"
+    description: "Konwencje odtwarzalności eksperymentów ML."
+    when_to_use: "Przy treningu nowego modelu lub zmianie hiperparametrów/danych."
+    guidance: >
+      Wersjonowanie danych treningowych/snapshotów, logowanie hiperparametrów
+      i metryk (np. MLflow) dla każdego eksperymentu, seed losowości
+      zapisywany dla powtarzalności wyników.
+  - name: "model-serving-conventions"
+    description: "Konwencje wdrażania modeli do serwowania w produkcji."
+    when_to_use: "Przy wdrażaniu wytrenowanego modelu jako usługi/endpointu."
+    guidance: >
+      Wersjonowanie wdrożonych modeli (jawny numer/tag), monitoring driftu
+      danych wejściowych i jakości predykcji na produkcji, strategia
+      rollbacku do poprzedniej wersji modelu.
+conventions_hints: >
+  Rozdzielenie kodu eksperymentalnego (notebooki/skrypty badawcze) od kodu
+  produkcyjnego (serwowanie, pipeline treningowy jako kod, nie notebook),
+  artefakty modeli i dane NIE trzymane bezpośrednio w repo git (osobny
+  storage/registry).
+testing_hints: >
+  Testy jednostkowe dla kodu preprocessingu/feature engineering, testy
+  regresji jakości modelu na stałym zbiorze ewaluacyjnym jako część CI,
+  testy integracyjne dla endpointu serwującego model.
+claude_hints: >
+  Wybór architektury modelu, zbioru danych treningowych i metryki sukcesu
+  traktuj jako decyzje o wysokim koszcie zmiany — kandydaci na ADR. Jeśli
+  projekt dotyczy głównie LLM/RAG/agentów, zaproponuj użytkownikowi profil
+  `rag-ai-agents` zamiast/obok tego.

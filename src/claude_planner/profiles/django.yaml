@@ -1,0 +1,41 @@
+id: django
+name: "Django"
+description: >
+  Aplikacja backendowa/webowa w Pythonie oparta o Django — pełny framework
+  z ORM, panelem admina i (opcjonalnie) Django REST Framework dla API.
+languages: ["Python"]
+frameworks: ["Django", "Django REST Framework", "Django ORM", "Celery"]
+extra_agents:
+  - id: django-app-boundary-reviewer
+    name: "Django App Boundary Reviewer"
+    description: "Pilnuje sensownego podziału na Django apps i granic między nimi."
+    focus: >
+      Każda Django app jako spójny, jasno opisany obszar odpowiedzialności
+      (nie jeden wielki `core`/`main`), unikanie cyklicznych importów między
+      appkami, jawne decyzje co trafia do panelu admina a co nie (bezpieczeństwo).
+skills:
+  - name: "django-orm-conventions"
+    description: "Konwencje modelowania danych i zapytań w Django ORM."
+    when_to_use: "Przy dodawaniu/zmianie modeli lub zapytań."
+    guidance: >
+      `select_related`/`prefetch_related` jako domyślna praktyka przeciw N+1,
+      logika walidacji w `clean()`/serializerach a nie rozproszona po widokach,
+      migracje generowane, recenzowane i nazwane opisowo.
+  - name: "drf-api-conventions"
+    description: "Konwencje projektowania API w Django REST Framework."
+    when_to_use: "Przy dodawaniu endpointów API."
+    guidance: >
+      Serializery jako jedyne miejsce walidacji/transformacji danych API,
+      jawna wersjonowanie API jeśli przewidywane są breaking changes,
+      permissions/throttling ustawiane świadomie per endpoint.
+conventions_hints: >
+  Standardowa struktura Django (osobne apps per domena), settings podzielone
+  per środowisko (base/dev/prod), jawna decyzja: server-rendered (templates)
+  vs API-first (DRF) + osobny frontend — udokumentowana jako ADR.
+testing_hints: >
+  pytest-django jako standard, testy modeli/serializerów jednostkowo, testy
+  API przez Django/DRF test client, fixtures/factory_boy dla danych testowych.
+claude_hints: >
+  Django często łączony z profilem ai-ml lub postgresql-pgvector-postgis
+  (Django ORM + PostgreSQL to typowa para) — przy generowaniu standardów
+  kodowania połącz te sekcje zamiast duplikować.

@@ -1,0 +1,44 @@
+id: rag-ai-agents
+name: "RAG & AI Agents"
+description: >
+  Systemy oparte o LLM z wyszukiwaniem kontekstowym (RAG) i/lub agentami
+  wykonującymi wieloetapowe zadania (tool use, orkiestracja, MCP).
+languages: ["Python", "TypeScript"]
+frameworks: ["LangChain/LlamaIndex", "Anthropic/OpenAI SDK", "MCP", "CrewAI/AutoGen"]
+extra_agents:
+  - id: agent-safety-guardian
+    name: "Agent Safety & Scope Guardian"
+    description: "Pilnuje bezpiecznego zakresu działań agentów (tool use, autonomia)."
+    focus: >
+      Jawna lista narzędzi dostępnych każdemu agentowi (zasada najmniejszych
+      uprawnień), rozróżnienie akcji odwracalnych od nieodwracalnych (np.
+      zapis danych, wysyłka wiadomości) i wymóg potwierdzenia dla tych drugich,
+      limity na koszt/liczbę iteracji pojedynczego zadania agenta.
+skills:
+  - name: "rag-retrieval-conventions"
+    description: "Konwencje projektowania pipeline'u retrieval w systemach RAG."
+    when_to_use: "Przy projektowaniu lub zmianie sposobu wyszukiwania kontekstu dla LLM."
+    guidance: >
+      Jawna strategia chunkowania dokumentów i jej uzasadnienie, wybór
+      modelu embeddingów i metryki podobieństwa jako decyzja architektoniczna
+      (ADR), ewaluacja trafności retrieval osobno od jakości finalnej odpowiedzi.
+  - name: "agent-orchestration-conventions"
+    description: "Konwencje projektowania wieloetapowych/multi-agentowych workflow."
+    when_to_use: "Przy projektowaniu agenta wykonującego więcej niż jeden krok lub orkiestracji wielu agentów."
+    guidance: >
+      Jawny podział odpowiedzialności między agentami/krokami (unikanie
+      jednego "wszystkomogącego" agenta), obsługa błędów/timeoutów na każdym
+      kroku, logowanie decyzji agenta w sposób umożliwiający debugowanie.
+conventions_hints: >
+  Rozdzielenie kodu produkcyjnego (serwowanie) od eksperymentów, prompty i
+  definicje narzędzi (tool schemas) jako wersjonowane artefakty w repo, nie
+  hardcodowane ad hoc.
+testing_hints: >
+  Zestaw eval dla jakości retrieval i finalnych odpowiedzi jako część CI,
+  testy jednostkowe dla parsowania/walidacji wyników narzędzi, testy
+  scenariuszowe (golden path + przypadki brzegowe) dla przepływów agentowych.
+claude_hints: >
+  Traktuj wybór dostawcy/modelu LLM, architekturę RAG (chunking, wektorowa
+  baza danych) oraz zakres uprawnień agentów jako kandydatów na ADR — to
+  decyzje o wysokim koszcie zmiany i realnym ryzyku bezpieczeństwa. Jeśli
+  projekt używa też PostgreSQL/pgvector, połącz sekcje zamiast duplikować.

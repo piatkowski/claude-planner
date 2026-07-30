@@ -1,0 +1,43 @@
+id: flutter
+name: "Flutter"
+description: >
+  Aplikacja mobilna cross-platform (iOS/Android, opcjonalnie web/desktop) w
+  Flutterze — jedna baza kodu Dart, własny silnik renderowania.
+languages: ["Dart"]
+frameworks: ["Flutter", "Riverpod/Bloc/Provider", "GoRouter"]
+extra_agents:
+  - id: flutter-release-manager
+    name: "Flutter Release Manager"
+    description: "Pilnuje procesu wydań do App Store i Google Play oraz spójności buildów."
+    focus: >
+      Wersjonowanie (pubspec.yaml + build number), flavory per środowisko
+      (dev/staging/prod), checklisty przed release'em (ikony, splash,
+      uprawnienia, zgodność z politykami sklepów).
+skills:
+  - name: "flutter-state-management-conventions"
+    description: "Konwencje zarządzania stanem w aplikacji Flutter."
+    when_to_use: "Przy dodawaniu nowej funkcjonalności ze stanem współdzielonym."
+    guidance: >
+      Jeden spójny wybór podejścia do stanu (Riverpod/Bloc/Provider) dla
+      całego projektu — nie mieszać kilku wzorców bez uzasadnienia; stan
+      lokalny widgetu jako domyślny wybór dla prostych przypadków.
+  - name: "flutter-widget-conventions"
+    description: "Konwencje budowy widgetów i struktury UI."
+    when_to_use: "Przy tworzeniu nowych ekranów/komponentów."
+    guidance: >
+      Rozbijanie dużych widgetów na mniejsze, reużywalne komponenty,
+      oddzielenie logiki (kontrolery/providery) od warstwy prezentacji,
+      spójny design system (motyw, typografia, spacing) zamiast wartości
+      "na sztywno" w widgetach.
+conventions_hints: >
+  Struktura per-feature (features/<nazwa>/{ui,logic,data}) zamiast podziału
+  czysto technicznego, jawna decyzja o zarządzaniu stanem udokumentowana
+  jako ADR na starcie projektu.
+testing_hints: >
+  Testy jednostkowe logiki/providerów, testy widgetów (`flutter test`) dla
+  kluczowych ekranów, testy integracyjne (`integration_test`) na
+  krytycznych ścieżkach użytkownika.
+claude_hints: >
+  Traktuj proces publikacji do sklepów jako osobny element roadmapy;
+  jeśli projekt celuje też w web/desktop, jawnie zaznacz to jako dodatkowy
+  wymiar testowania i różnic UX.

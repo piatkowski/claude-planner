@@ -1,0 +1,43 @@
+id: laravel
+name: "Laravel"
+description: >
+  Aplikacja backendowa/webowa w PHP oparta o framework Laravel — szybkie
+  dostarczanie MVP i typowych aplikacji biznesowych.
+languages: ["PHP", "Blade"]
+frameworks: ["Laravel", "Eloquent ORM", "Livewire/Inertia", "Artisan"]
+extra_agents:
+  - id: laravel-convention-guardian
+    name: "Laravel Convention Guardian"
+    description: "Pilnuje trzymania się konwencji Laravela zamiast ich obchodzenia."
+    focus: >
+      Fat models / thin controllers pod kontrolą (logika biznesowa w
+      Service/Action, nie rozlana po kontrolerach), jawne użycie Form
+      Requestów do walidacji, kolejki (queues) dla operacji długotrwałych
+      zamiast blokowania requestu.
+skills:
+  - name: "eloquent-query-conventions"
+    description: "Konwencje pisania zapytań i relacji Eloquent."
+    when_to_use: "Przy dodawaniu nowych modeli, relacji lub zapytań."
+    guidance: >
+      Eager loading (`with()`) jako domyślna praktyka przeciw N+1, scope'y
+      dla powtarzalnych warunków zapytań, unikanie logiki biznesowej
+      bezpośrednio w akcesorach/mutatorach ponad prostą transformację danych.
+  - name: "laravel-testing-conventions"
+    description: "Konwencje testowania w Laravel (Pest/PHPUnit)."
+    when_to_use: "Przy pisaniu testów feature/unit."
+    guidance: >
+      Testy feature na realnych endpointach z bazą testową (RefreshDatabase),
+      fabryki (Factories) zamiast ręcznego seedowania w testach, testy
+      jednostkowe dla logiki w klasach Action/Service.
+conventions_hints: >
+  Standardowa struktura Laravela (app/Models, app/Http/Controllers,
+  app/Actions lub app/Services dla logiki domenowej), jawna decyzja o
+  warstwie prezentacji (Blade+Livewire vs Inertia+SPA vs czyste API)
+  udokumentowana jako ADR.
+testing_hints: >
+  Pest lub PHPUnit z testami feature dla endpointów i testami jednostkowymi
+  dla logiki domenowej; fabryki danych jako standard zamiast fixture'ów SQL.
+claude_hints: >
+  Laravel jest często wybierany pod presję czasu (MVP) — jawnie oznacz w
+  coding-standards, gdzie idziemy na skróty świadomie, żeby dług techniczny
+  był widoczny, a nie ukryty.

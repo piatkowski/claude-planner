@@ -9,6 +9,14 @@ EXPECTED_IDS = {
     "ai-ml",
     "postgresql-pgvector-postgis",
     "generic",
+    "symfony",
+    "laravel",
+    "django",
+    "react-native",
+    "flutter",
+    "rag-ai-agents",
+    "data-engineering",
+    "machine-learning",
 }
 
 

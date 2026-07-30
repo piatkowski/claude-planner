@@ -1,0 +1,43 @@
+id: symfony
+name: "Symfony"
+description: >
+  Aplikacja backendowa/webowa w PHP oparta o framework Symfony — typowo
+  większe, długożyjące systemy klasy enterprise.
+languages: ["PHP", "Twig"]
+frameworks: ["Symfony", "Doctrine ORM", "API Platform", "Messenger"]
+extra_agents:
+  - id: symfony-architecture-reviewer
+    name: "Symfony Architecture Reviewer"
+    description: "Pilnuje spójności z architekturą Symfony (bundle'e, DI, warstwy)."
+    focus: >
+      Poprawne użycie kontenera DI i serwisów (bez nadużywania statyki/globali),
+      podział na warstwy (Controller/Service/Repository), spójne użycie
+      Doctrine (unikanie N+1, jawne fetch strategie), zgodność z konwencjami
+      Symfony przy dodawaniu bundle'i.
+skills:
+  - name: "symfony-service-conventions"
+    description: "Konwencje projektowania serwisów i wstrzykiwania zależności."
+    when_to_use: "Przy dodawaniu nowej logiki biznesowej lub integracji."
+    guidance: >
+      Serwisy jako klasy z jawnymi zależnościami przez konstruktor (autowiring),
+      unikanie ServiceLocatora bez uzasadnienia, komendy/handlery CQRS-owe dla
+      operacji zapisu jeśli projekt tego wymaga.
+  - name: "doctrine-migration-conventions"
+    description: "Konwencje migracji i modelowania encji Doctrine."
+    when_to_use: "Przy zmianie schematu bazy danych zarządzanego przez Doctrine."
+    guidance: >
+      Migracje generowane i recenzowane (nie ślepo commitowane), jawne
+      indeksy i klucze obce w mapowaniu encji, unikanie logiki biznesowej
+      w encjach ponad to co niezbędne (rich model tylko tam gdzie uzasadnione).
+conventions_hints: >
+  Standardowa struktura katalogów Symfony (src/Controller, src/Entity,
+  src/Repository, src/Service), konfiguracja przez atrybuty/YAML zgodnie
+  z konwencją zespołu, API Platform lub własne kontrolery REST — decyzja
+  jawnie udokumentowana jako ADR.
+testing_hints: >
+  PHPUnit z testami jednostkowymi dla serwisów, testy funkcjonalne przez
+  Symfony WebTestCase dla endpointów, fixtures (Doctrine Fixtures Bundle)
+  dla danych testowych.
+claude_hints: >
+  Symfony to zwykle projekty o dłuższym horyzoncie życia — kładź nacisk na
+  utrzymywalność i jawne ADR dla decyzji o strukturze bundle'i i strategii CQRS/Messenger.

@@ -1,0 +1,41 @@
+id: react-native
+name: "React Native"
+description: >
+  Aplikacja mobilna cross-platform (iOS/Android) w React Native — jeden
+  kod źródłowy JS/TS, natywne moduły tam gdzie potrzeba.
+languages: ["TypeScript", "JavaScript"]
+frameworks: ["React Native", "Expo", "React Navigation", "Zustand/Redux"]
+extra_agents:
+  - id: rn-release-manager
+    name: "React Native Release Manager"
+    description: "Pilnuje procesu wydań (Expo EAS / bare workflow) do App Store i Google Play."
+    focus: >
+      Wersjonowanie buildów natywnych vs OTA update'y (Expo Updates),
+      zarządzanie natywnymi zależnościami wymagającymi rebuildu, checklisty
+      przed release'em (uprawnienia, ikony, splash screens, review sklepów).
+skills:
+  - name: "rn-navigation-state-conventions"
+    description: "Konwencje nawigacji i zarządzania stanem w aplikacji RN."
+    when_to_use: "Przy dodawaniu nowych ekranów lub globalnego stanu."
+    guidance: >
+      Jawna struktura nawigacji (stack/tab/drawer) opisana w jednym miejscu,
+      stan lokalny komponentu jako domyślny wybór, stan globalny tylko dla
+      danych faktycznie współdzielonych między ekranami.
+  - name: "native-module-bridge-conventions"
+    description: "Konwencje integracji z natywnym kodem (moduły/biblioteki)."
+    when_to_use: "Przy integracji funkcji wymagającej kodu natywnego (iOS/Android)."
+    guidance: >
+      Preferuj utrzymywane biblioteki Expo/community przed pisaniem własnego
+      mostka natywnego; jeśli własny moduł jest konieczny, udokumentuj to
+      jako ADR (koszt utrzymania dwóch platform natywnych).
+conventions_hints: >
+  Rozdział na warstwę UI (komponenty prezentacyjne), nawigację i logikę
+  biznesową/integracje API; jawna decyzja Expo (managed/EAS) vs bare
+  React Native udokumentowana jako ADR na starcie.
+testing_hints: >
+  Testy jednostkowe logiki (Jest), testy komponentów (React Native Testing
+  Library), smoke test e2e (Detox/Maestro) na krytycznych ścieżkach
+  (logowanie, główny flow zakupowy/produktowy).
+claude_hints: >
+  Traktuj proces publikacji do sklepów (review time, wymagania polityk) jako
+  osobny element roadmapy, nie tylko development.

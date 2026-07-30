@@ -1,0 +1,44 @@
+id: data-engineering
+name: "Data Engineering"
+description: >
+  Pipeline'y danych (ETL/ELT), hurtownie danych, przetwarzanie wsadowe i/lub
+  strumieniowe — dane jako produkt dla innych zespołów/systemów.
+languages: ["Python", "SQL"]
+frameworks: ["Airflow/Dagster/Prefect", "dbt", "Spark", "Kafka"]
+extra_agents:
+  - id: data-quality-guardian
+    name: "Data Quality Guardian"
+    description: "Pilnuje jakości i kontraktów danych między etapami pipeline'u."
+    focus: >
+      Jawne kontrakty danych (schema) między źródłem, transformacją i
+      odbiorcą; testy jakości danych (kompletność, unikalność, zakresy
+      wartości) jako część pipeline'u, nie afterthought; strategia obsługi
+      danych niepoprawnych (odrzucenie vs kwarantanna vs naprawa).
+skills:
+  - name: "pipeline-idempotency-conventions"
+    description: "Konwencje idempotentności i odtwarzalności zadań w pipeline."
+    when_to_use: "Przy projektowaniu nowego zadania/DAG-a przetwarzającego dane."
+    guidance: >
+      Każde zadanie powinno być bezpieczne do ponownego uruchomienia bez
+      duplikowania danych (idempotencja), jawna strategia backfillu
+      historycznych danych, checkpointy/stan zapisywane w sposób odtwarzalny.
+  - name: "data-modeling-conventions"
+    description: "Konwencje modelowania warstw danych (raw/staging/mart)."
+    when_to_use: "Przy projektowaniu nowej tabeli/modelu w hurtowni danych."
+    guidance: >
+      Jawny podział na warstwy (raw -> staging -> mart/analityczna), nazwy
+      kolumn i tabel spójne i udokumentowane, transformacje wersjonowane
+      (np. modele dbt) zamiast ad hoc SQL bez śladu w repo.
+conventions_hints: >
+  Pipeline'y jako kod wersjonowany w repo (DAG-i, modele dbt), jawne
+  planowanie/orkiestracja (Airflow/Dagster/Prefect) opisane w dokumentacji,
+  rozdzielenie logiki transformacji od orkiestracji.
+testing_hints: >
+  Testy jednostkowe transformacji na małych, reprezentatywnych zbiorach
+  danych, testy jakości danych (np. dbt tests/Great Expectations) jako
+  bramka przed publikacją danych dalej, monitoring świeżości i wolumenu danych.
+claude_hints: >
+  Decyzje o architekturze danych (batch vs streaming, wybór hurtowni,
+  strategia partycjonowania) traktuj jako kandydatów na ADR. Jeśli projekt
+  łączy się z ai-ml/rag-ai-agents, jawnie połącz sekcje o jakości danych
+  zamiast duplikować.

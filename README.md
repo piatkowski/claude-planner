@@ -58,7 +58,9 @@ przy generowaniu standardów kodowania/testów. Profile są **składalne**: proj
 może użyć kilku naraz (np. `web-fullstack` + `postgresql-pgvector-postgis` + `ai-ml`).
 
 Dostępne w v1: `web-fullstack`, `backend-api`, `mobile`, `python`,
-`wordpress-woocommerce`, `ai-ml`, `postgresql-pgvector-postgis`, `generic` (fallback).
+`wordpress-woocommerce`, `ai-ml`, `postgresql-pgvector-postgis`, `generic` (fallback),
+`symfony`, `laravel`, `django`, `react-native`, `flutter`, `rag-ai-agents`,
+`data-engineering`, `machine-learning`.
 
 Dodanie nowego profilu = nowy plik YAML w `profiles/`, zero zmian w kodzie Pythona.
 Schemat pól: zobacz `src/claude_planner/models.py::StackProfile`.
