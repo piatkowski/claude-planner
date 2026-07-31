@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from enum import Enum
+
 from pydantic import BaseModel, Field
 
 
@@ -62,6 +64,31 @@ class InterviewStageResult(BaseModel):
     summary: str = ""
 
 
+class ProjectScale(str, Enum):
+    """Ocena skali projektu przez Orchestratora (Moduł 3: Agentic Routing) — steruje
+    tym, jak dociekliwe technicznie mogą/powinny być kolejne etapy wywiadu (np. QA/DevOps)."""
+
+    MICRO = "Micro"
+    SMALL = "Small"
+    MEDIUM = "Medium"
+    ENTERPRISE = "Enterprise"
+
+
+class ProjectState(BaseModel):
+    """Globalna pamięć współdzielona (Blackboard pattern) między etapami/rolami wywiadu.
+
+    Jedyne źródło prawdy o faktach ustalonych do tej pory — wstrzykiwana jako zrzut do
+    system promptu każdej roli, żeby żadna z nich nie pytała ponownie o coś, co już tu
+    jest. Aktualizowana po każdej odpowiedzi użytkownika (patrz `claude_planner.state`).
+    """
+
+    facts: dict[str, str] = Field(default_factory=dict)
+    fact_sources: dict[str, str] = Field(default_factory=dict)
+    scale: ProjectScale | None = None
+    scale_justification: str = ""
+    fatigue_triggered: bool = False
+
+
 class ProjectBrief(BaseModel):
     """Zebrane dane o projekcie: metadane + wynik wywiadu + wybrane profile."""
 
@@ -72,3 +99,4 @@ class ProjectBrief(BaseModel):
     intake_path: str | None = None
     intake_summary: str = ""
     stages: list[InterviewStageResult] = Field(default_factory=list)
+    state: ProjectState = Field(default_factory=ProjectState)

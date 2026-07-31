@@ -125,6 +125,8 @@ sklep-xyz/
 │       └── 0001-nextjs-fastapi-zamiast-django.md
 ├── .planner/
 │   ├── project.yaml                # metadane (klient, profile, data)
+│   ├── brief.json                  # pełny brief (wejście dla `regenerate`)
+│   ├── project-state.json          # globalna pamięć wywiadu (Moduł 1: fakty, skala, fatigue)
 │   └── interview-transcript.md     # pełny zapis wywiadu (do wglądu, nie do edycji)
 └── .claude/
     ├── settings.json                # hooki: SessionStart (przypomnienie stanu), PreToolUse (anty-halucynacja wersji)
