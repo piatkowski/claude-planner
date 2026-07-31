@@ -28,7 +28,7 @@ Narzędzie generuje tylko artefakty planistyczne, nie szkielet kodu aplikacji.
 ## Instalacja
 
 ```bash
-pipx install claude-planner   # docelowo, po publikacji na PyPI
+pipx install claude-planner 
 # albo lokalnie z tego repo:
 uv pip install -e .
 ```
