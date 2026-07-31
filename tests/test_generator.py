@@ -89,6 +89,11 @@ def test_generate_environment_writes_full_structure(tmp_path, monkeypatch):
     pre_tool_use = settings["hooks"]["PreToolUse"]
     assert pre_tool_use[0]["matcher"] == "Bash"
     assert "check-pinned-dependency.py" in pre_tool_use[0]["hooks"][0]["command"]
+    # Hooki muszą używać $CLAUDE_PROJECT_DIR — ścieżka względna zawodzi, gdy sesja
+    # Claude Code jest uruchomiona z innego cwd niż root projektu (np. z podkatalogu).
+    assert "$CLAUDE_PROJECT_DIR" in pre_tool_use[0]["hooks"][0]["command"]
+    session_start = settings["hooks"]["SessionStart"]
+    assert "$CLAUDE_PROJECT_DIR" in session_start[0]["hooks"][0]["command"]
 
     assert "setup-dev-environment" in summary["commands"]
 

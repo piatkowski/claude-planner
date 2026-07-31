@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 from rich.console import Console
 
+from claude_planner.claude_client import ClaudeCLIError
 from claude_planner.generator import generate_environment
 from claude_planner.intake import summarize_intake
 from claude_planner.interview import InterviewRunner
@@ -99,7 +100,26 @@ def run_init(
         model=model,
         console=console,
     )
-    stages = runner.run(INTERVIEW_ROLES)
+    try:
+        stages = runner.run(INTERVIEW_ROLES)
+    except ClaudeCLIError:
+        # Wywiad z klientem to godziny pracy człowieka — nawet jeśli padnie w połowie,
+        # to co zdążyliśmy zebrać (runner.completed_stages) trafia na dysk, żeby nic
+        # nie przepadło i żeby dało się to później dokończyć bez powtarzania wywiadu.
+        console.print(
+            "[red]Wywiad przerwany błędem Claude — zapisuję to, co już ustalono, "
+            "zamiast to tracić.[/red]"
+        )
+        partial_brief = ProjectBrief(
+            project_name=project_name,
+            client_name=client_name,
+            profile_ids=profile_ids,
+            intake_path=str(intake_path) if intake_path else None,
+            intake_summary=intake_summary,
+            stages=runner.completed_stages,
+        )
+        _write_metadata(output_dir, partial_brief)
+        raise
 
     brief = ProjectBrief(
         project_name=project_name,
@@ -110,10 +130,22 @@ def run_init(
         stages=stages,
     )
 
-    console.rule("[bold]Generowanie środowiska")
-    summary = generate_environment(brief, profiles, output_dir, model=model)
-
+    # Brief zapisujemy PRZED generowaniem środowiska (a nie po) — jeśli generowanie
+    # padnie (np. timeout/rate limit Claude w trakcie 7+ wywołań), wywiad discovery
+    # nie zostaje bezpowrotnie utracony: `claude-planner regenerate` dokończy z briefu.
     _write_metadata(output_dir, brief)
+
+    console.rule("[bold]Generowanie środowiska")
+    try:
+        summary = generate_environment(brief, profiles, output_dir, model=model)
+    except ClaudeCLIError:
+        console.print(
+            "[red]Generowanie środowiska nie powiodło się. Brief i transkrypt wywiadu "
+            f"są zapisane w {output_dir / '.planner'} — napraw przyczynę błędu i uruchom "
+            "`claude-planner regenerate` na tym katalogu zamiast powtarzać wywiad.[/red]"
+        )
+        raise
+
     _git_init(output_dir, console)
     _git_initial_commit(output_dir, console)
 
@@ -134,6 +166,9 @@ def _write_metadata(output_dir: Path, brief: ProjectBrief) -> None:
     (meta_dir / "project.yaml").write_text(
         yaml.safe_dump(metadata, allow_unicode=True, sort_keys=False), encoding="utf-8"
     )
+    # Pełny brief w JSON (maszynowo odczytywalny) — pozwala `claude-planner regenerate`
+    # odtworzyć środowisko bez ponownego przeprowadzania wywiadu z klientem.
+    (meta_dir / "brief.json").write_text(brief.model_dump_json(indent=2), encoding="utf-8")
 
     lines = [f"# Transkrypt wywiadu — {brief.project_name}\n"]
     for stage in brief.stages:

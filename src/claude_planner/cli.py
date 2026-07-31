@@ -12,8 +12,11 @@ from rich.table import Table
 
 from claude_planner import __version__
 from claude_planner.claude_client import ClaudeCLIError, ClaudeNotFoundError, ensure_claude_available
+from claude_planner.generator import generate_environment
+from claude_planner.intake import IntakeError
+from claude_planner.models import ProjectBrief
 from claude_planner.profile_generator import generate_profile, profile_to_yaml
-from claude_planner.profiles import DEFAULT_CUSTOM_PROFILES_DIR, load_all_profiles
+from claude_planner.profiles import DEFAULT_CUSTOM_PROFILES_DIR, get_profile, load_all_profiles
 from claude_planner.scaffold import ScaffoldError, run_init
 from claude_planner.textutils import slugify
 
@@ -161,6 +164,10 @@ def init(
         None,
         "--intake",
         help="Ścieżka do folderu z materiałami od klienta (spec, MVP, makiety, schemat DB itd.).",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
     ),
     profile: list[str] = typer.Option(
         None, "--profile", "-p", help="ID profilu technologicznego (można podać kilka razy)."
@@ -215,7 +222,7 @@ def init(
             console=console,
             profiles_dir=resolved_profiles_dir,
         )
-    except (ScaffoldError, ClaudeCLIError, KeyError) as exc:
+    except (ScaffoldError, ClaudeCLIError, IntakeError, KeyError) as exc:
         console.print(f"[red]Błąd: {exc}[/red]")
         raise typer.Exit(code=1) from exc
 
@@ -225,6 +232,61 @@ def init(
     console.print(f"ADR: {summary['adr_count']}")
     console.print(f"Agenci: {', '.join(summary['agents'])}")
     console.print(f"Komendy: {', '.join('/' + c for c in summary['commands'])}")
+
+
+@app.command()
+def regenerate(
+    output: Path = typer.Argument(
+        ...,
+        help="Katalog projektu wygenerowanego wcześniej przez `init` (musi zawierać .planner/brief.json).",
+    ),
+    profiles_dir: Path = PROFILES_DIR_OPTION,
+    model: ModelChoice = typer.Option(
+        None, "--model", help="Model Claude do użycia (sonnet/opus)."
+    ),
+) -> None:
+    """Odtwórz docs/ i .claude/ z zapisanego briefu, bez powtarzania wywiadu discovery.
+
+    Przydatne, gdy `init` przeprowadził wywiad, ale generowanie środowiska nie powiodło
+    się (np. timeout/rate limit Claude) — brief jest zawsze zapisywany na dysk przed
+    generowaniem, więc nic z rozmowy z klientem nie przepada.
+    """
+    try:
+        ensure_claude_available()
+    except ClaudeNotFoundError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from exc
+
+    brief_path = output / ".planner" / "brief.json"
+    if not brief_path.exists():
+        console.print(
+            f"[red]Nie znaleziono {brief_path} — ten katalog nie wygląda na projekt "
+            "claude-planner z zapisanym briefem.[/red]"
+        )
+        raise typer.Exit(code=1)
+
+    brief = ProjectBrief.model_validate_json(brief_path.read_text(encoding="utf-8"))
+    resolved_profiles_dir = _resolve_profiles_dir(profiles_dir)
+    try:
+        profiles = [get_profile(pid, extra_dir=resolved_profiles_dir) for pid in brief.profile_ids]
+    except KeyError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from exc
+
+    console.print(
+        f"Regeneruję środowisko w {output} z zapisanego briefu "
+        f"(profile: {', '.join(brief.profile_ids)})..."
+    )
+    try:
+        summary = generate_environment(brief, profiles, output, model=model.value if model else None)
+    except ClaudeCLIError as exc:
+        console.print(f"[red]Błąd: {exc}[/red]")
+        raise typer.Exit(code=1) from exc
+
+    console.rule("[bold green]Gotowe")
+    console.print(f"Środowisko zregenerowane w: {output}")
+    console.print(f"Dokumenty: {', '.join(summary['docs'])}")
+    console.print(f"ADR: {summary['adr_count']}")
 
 
 if __name__ == "__main__":

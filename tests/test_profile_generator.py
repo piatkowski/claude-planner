@@ -1,7 +1,9 @@
 import json
 
+import pytest
 import yaml
 
+from claude_planner.claude_client import ClaudeCLIError
 from claude_planner.models import StackProfile
 from claude_planner.profile_generator import generate_profile, profile_to_yaml
 
@@ -57,3 +59,20 @@ def test_profile_to_yaml_round_trips_through_stack_profile(monkeypatch):
     reloaded = StackProfile.model_validate(yaml.safe_load(yaml_text))
     assert reloaded == profile
     assert yaml_text.startswith("id: ruby-on-rails")
+
+
+def test_generate_profile_raises_claude_cli_error_on_invalid_json(monkeypatch):
+    monkeypatch.setattr(
+        "claude_planner.profile_generator.one_shot", lambda *a, **k: "not valid json"
+    )
+    with pytest.raises(ClaudeCLIError):
+        generate_profile("Stack nieznany", "some-id")
+
+
+def test_generate_profile_raises_claude_cli_error_on_schema_violation(monkeypatch):
+    monkeypatch.setattr(
+        "claude_planner.profile_generator.one_shot",
+        lambda *a, **k: json.dumps({"name": "Niepełny profil"}),
+    )
+    with pytest.raises(ClaudeCLIError):
+        generate_profile("Stack nieznany", "some-id")

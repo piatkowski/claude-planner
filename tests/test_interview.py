@@ -1,6 +1,8 @@
 import json
 
-from claude_planner.claude_client import ClaudeTurnResult
+import pytest
+
+from claude_planner.claude_client import ClaudeCLIError, ClaudeTurnResult
 from claude_planner.interview import InterviewRunner
 from claude_planner.models import InterviewRole
 
@@ -111,3 +113,36 @@ def test_fallback_when_claude_returns_non_json(monkeypatch):
     )
     stages = runner.run([ROLE])
     assert stages[0].qa[0].question == "Jakie jest Twoje imię?"
+
+
+def test_stage_failure_propagates_and_preserves_earlier_completed_stages(monkeypatch):
+    """Etap, którego nie udało się przeprowadzić (błąd Claude), musi przerwać cały
+    wywiad zamiast fabrykować pusty/domyślny summary — ale to, co zebrano w
+    poprzednich, zakończonych etapach, powinno zostać w `runner.completed_stages`."""
+
+    class FailingSession:
+        def __init__(self, **kwargs):
+            pass
+
+        def send(self, prompt):
+            raise ClaudeCLIError("Claude nie odpowiedział")
+
+    call_count = {"n": 0}
+
+    def make_session(**kwargs):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return FakeSession([_turn("done", summary="Etap 1 zakończony poprawnie.")])
+        return FailingSession(**kwargs)
+
+    monkeypatch.setattr("claude_planner.interview.ClaudeSession", make_session)
+    monkeypatch.setattr("claude_planner.interview.Prompt.ask", lambda *a, **k: "odpowiedź")
+
+    role_2 = InterviewRole(id="role-2", display_name="Role 2", persona="p", topics=["t"], goal="g")
+    runner = InterviewRunner(project_name="P", client_name="C", profiles=[], intake_path=None)
+
+    with pytest.raises(ClaudeCLIError):
+        runner.run([ROLE, role_2])
+
+    assert len(runner.completed_stages) == 1
+    assert runner.completed_stages[0].summary == "Etap 1 zakończony poprawnie."
