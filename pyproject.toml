@@ -1,6 +1,6 @@
 [project]
 name = "claude-planner"
-version = "0.1.3"
+version = "0.1.4"
 description = "Generator kompletnego, żywego środowiska Claude Code do planowania projektów IT dla software house'u — wizja, ADR, roadmapa, agenci, skille, dowolny stack."
 readme = "README.md"
 requires-python = ">=3.10"
