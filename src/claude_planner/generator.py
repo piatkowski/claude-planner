@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from datetime import date
 from pathlib import Path
 
@@ -316,28 +317,43 @@ def generate_environment(
     output_dir: Path,
     *,
     model: str | None = None,
+    on_step: Callable[[str], None] | None = None,
 ) -> dict:
-    """Generuje pełne środowisko w `output_dir`. Zwraca metadane wygenerowanych plików."""
+    """Generuje pełne środowisko w `output_dir`. Zwraca metadane wygenerowanych plików.
+
+    `on_step` (opcjonalny) jest wołany z etykietą przed każdym z kilku kolejnych
+    wywołań `claude`, które mogą trwać nawet kilka minut każde — pozwala UI
+    pokazać, na którym dokumencie generowanie aktualnie stoi, zamiast milczeć
+    przez cały czas trwania `generate_environment`.
+    """
     docs_dir = output_dir / "docs"
     claude_dir = output_dir / ".claude"
     generated_at = date.today().isoformat()
+    step = on_step or (lambda _label: None)
 
+    step("docs/vision.md")
     _write(docs_dir / "vision.md", generate_vision(brief, profiles, model=model))
+    step("docs/prd.md")
     _write(docs_dir / "prd.md", generate_prd(brief, profiles, model=model))
+    step("docs/roadmap.md")
     _write(docs_dir / "roadmap.md", generate_roadmap(brief, profiles, model=model))
+    step("docs/coding-standards.md")
     _write(
         docs_dir / "coding-standards.md",
         generate_coding_standards(brief, profiles, model=model),
     )
+    step("docs/definition-of-done.md")
     _write(
         docs_dir / "definition-of-done.md",
         generate_definition_of_done(brief, profiles, model=model),
     )
+    step("docs/test-strategy.md")
     _write(
         docs_dir / "test-strategy.md",
         generate_test_strategy(brief, profiles, model=model),
     )
 
+    step("decyzje architektoniczne (ADR)")
     decisions = generate_adrs(brief, profiles, model=model)
     _write_adrs(docs_dir, brief.project_name, decisions)
 

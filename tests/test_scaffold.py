@@ -23,7 +23,7 @@ def _stub_interview(monkeypatch):
     monkeypatch.setattr("claude_planner.scaffold.summarize_intake", lambda *a, **k: "intake summary")
     monkeypatch.setattr(
         "claude_planner.scaffold.generate_environment",
-        lambda brief, profiles, output_dir, model=None: {
+        lambda brief, profiles, output_dir, model=None, on_step=None: {
             "docs": ["vision.md"], "adr_count": 0, "agents": [], "commands": [], "skills": [],
         },
     )
@@ -109,7 +109,7 @@ def test_run_init_saves_brief_before_generation_so_failure_does_not_lose_intervi
     przepadają razem z błędem."""
     _stub_interview(monkeypatch)
 
-    def failing_generate(brief, profiles, output_dir, model=None):
+    def failing_generate(brief, profiles, output_dir, model=None, on_step=None):
         raise ClaudeCLIError("timeout")
 
     monkeypatch.setattr("claude_planner.scaffold.generate_environment", failing_generate)

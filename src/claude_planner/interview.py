@@ -20,6 +20,7 @@ from claude_planner.models import (
     InterviewStageResult,
     StackProfile,
 )
+from claude_planner.progress import thinking
 
 MAX_TURNS_PER_STAGE = 12
 END_COMMANDS = {"koniec", "/koniec", "/done", "done", "/skip"}
@@ -147,7 +148,8 @@ class InterviewRunner:
             # (patrz `_run_stage`'s summary fallback poniżej) trafiający potem do
             # dokumentacji projektu. Wywołujący (`scaffold.run_init`) łapie ten wyjątek
             # i zapisuje to, co już zebrano, zanim przerwie.
-            result = session.send(prompt)
+            with thinking(console, f"{role.display_name} zastanawia się"):
+                result = session.send(prompt)
 
             turn = _parse_turn(result.text)
             action = turn.get("action")
