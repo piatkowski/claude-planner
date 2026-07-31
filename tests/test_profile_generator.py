@@ -76,3 +76,44 @@ def test_generate_profile_raises_claude_cli_error_on_schema_violation(monkeypatc
     )
     with pytest.raises(ClaudeCLIError):
         generate_profile("Stack nieznany", "some-id")
+
+
+def test_generate_profile_strips_markdown_code_fence(monkeypatch):
+    fenced = "```json\n" + json.dumps(FAKE_PROFILE_JSON) + "\n```"
+    monkeypatch.setattr("claude_planner.profile_generator.one_shot", lambda *a, **k: fenced)
+    profile = generate_profile("Ruby on Rails + Sidekiq", "ruby-on-rails")
+    assert profile.name == "Ruby on Rails"
+
+
+def test_generate_profile_strips_prose_around_json(monkeypatch):
+    wrapped = "Oto profil:\n" + json.dumps(FAKE_PROFILE_JSON) + "\nMam nadzieję, że pomoże."
+    monkeypatch.setattr("claude_planner.profile_generator.one_shot", lambda *a, **k: wrapped)
+    profile = generate_profile("Ruby on Rails + Sidekiq", "ruby-on-rails")
+    assert profile.name == "Ruby on Rails"
+
+
+def test_generate_profile_retries_after_transient_bad_output(monkeypatch):
+    calls = {"n": 0}
+
+    def fake_one_shot(*a, **k):
+        calls["n"] += 1
+        if calls["n"] < 2:
+            return "not valid json"
+        return json.dumps(FAKE_PROFILE_JSON)
+
+    monkeypatch.setattr("claude_planner.profile_generator.one_shot", fake_one_shot)
+    profile = generate_profile("Ruby on Rails + Sidekiq", "ruby-on-rails")
+    assert profile.name == "Ruby on Rails"
+    assert calls["n"] == 2
+
+
+def test_generate_profile_does_not_pass_json_schema_to_one_shot(monkeypatch):
+    captured = {}
+
+    def fake_one_shot(*a, **k):
+        captured.update(k)
+        return json.dumps(FAKE_PROFILE_JSON)
+
+    monkeypatch.setattr("claude_planner.profile_generator.one_shot", fake_one_shot)
+    generate_profile("Ruby on Rails + Sidekiq", "ruby-on-rails")
+    assert captured.get("json_schema") is None

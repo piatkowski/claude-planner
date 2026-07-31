@@ -153,9 +153,6 @@ class ClaudeSession:
         return ClaudeTurnResult(text=text, session_id=session_id, is_error=is_error, raw=data)
 
 
-STRUCTURED_OUTPUT_MAX_RETRIES = 2
-
-
 def one_shot(
     prompt: str,
     *,
@@ -166,28 +163,24 @@ def one_shot(
     cwd: str | None = None,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
     json_schema: dict | None = None,
-    max_retries: int = STRUCTURED_OUTPUT_MAX_RETRIES,
 ) -> str:
     """Pojedyncze, bezstanowe wywołanie — użyteczne do generowania jednego dokumentu.
 
-    Przy `json_schema` porażka bywa przejściowa (model chwilowo nie trafia w
-    schemat, `--json-schema` wewnętrznie wyczerpuje własne próby) — ponawiamy
-    całe wywołanie `claude` od nowa, zamiast od razu wywalać cały krok generowania.
+    Uwaga: `json_schema` (`--json-schema`) włącza w `claude` CLI wewnętrzny,
+    agentowy mechanizm dopasowywania odpowiedzi do schematu, który potrafi
+    wykonywać wiele kosztownych iteracji i ciągnąć się bardzo długo, zanim w
+    ogóle odda wynik (albo odda `ClaudeStructuredOutputError`). Nie ponawiamy
+    tu automatycznie — przy wolnym/zawodnym `--json-schema` powtórka tylko
+    mnoży czas oczekiwania. Woleć zwykłe promptowanie z ręcznym parsowaniem
+    JSON tam, gdzie to możliwe (patrz `profile_generator.py`).
     """
-    attempt = 0
-    while True:
-        session = ClaudeSession(
-            system_prompt=system_prompt,
-            add_dirs=add_dirs,
-            allowed_tools=allowed_tools,
-            model=model,
-            cwd=cwd,
-            timeout=timeout,
-            json_schema=json_schema,
-        )
-        try:
-            return session.send(prompt).text
-        except ClaudeStructuredOutputError:
-            if attempt >= max_retries:
-                raise
-            attempt += 1
+    session = ClaudeSession(
+        system_prompt=system_prompt,
+        add_dirs=add_dirs,
+        allowed_tools=allowed_tools,
+        model=model,
+        cwd=cwd,
+        timeout=timeout,
+        json_schema=json_schema,
+    )
+    return session.send(prompt).text

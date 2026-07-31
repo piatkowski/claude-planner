@@ -1,8 +1,19 @@
-"""Generowanie nowego profilu stacku przy pomocy Claude (`claude -p`)."""
+"""Generowanie nowego profilu stacku przy pomocy Claude (`claude -p`).
+
+Świadomie NIE korzystamy z `--json-schema` (patrz `claude_client.one_shot`):
+w praktyce ten mechanizm CLI potrafił wchodzić w wielominutową, agentową
+pętlę dopasowywania odpowiedzi do schematu i kończyć się timeoutem albo
+`error_max_structured_output_retries` — dla użytkownika wyglądało to jak
+zawieszenie się `profiles create`. Zamiast tego prosimy model wprost o surowy
+JSON w treści promptu i sami, po stronie Pythona, parsujemy/walidujemy
+odpowiedź — a jeśli model się pomyli, ponawiamy tylko lekki, zwykły prompt
+(nie kosztowną pętlę CLI).
+"""
 
 from __future__ import annotations
 
 import json
+import re
 
 import yaml
 from pydantic import ValidationError
@@ -10,57 +21,8 @@ from pydantic import ValidationError
 from claude_planner.claude_client import ClaudeCLIError, one_shot
 from claude_planner.models import StackProfile
 
-PROFILE_JSON_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "name": {"type": "string"},
-        "description": {"type": "string"},
-        "languages": {"type": "array", "items": {"type": "string"}},
-        "frameworks": {"type": "array", "items": {"type": "string"}},
-        "setup_commands": {"type": "array", "items": {"type": "string"}},
-        "extra_agents": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string"},
-                    "name": {"type": "string"},
-                    "description": {"type": "string"},
-                    "focus": {"type": "string"},
-                },
-                "required": ["id", "name", "description", "focus"],
-            },
-        },
-        "skills": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string"},
-                    "description": {"type": "string"},
-                    "when_to_use": {"type": "string"},
-                    "guidance": {"type": "string"},
-                },
-                "required": ["name", "description", "when_to_use", "guidance"],
-            },
-        },
-        "conventions_hints": {"type": "string"},
-        "testing_hints": {"type": "string"},
-        "claude_hints": {"type": "string"},
-    },
-    "required": [
-        "name",
-        "description",
-        "languages",
-        "frameworks",
-        "setup_commands",
-        "extra_agents",
-        "skills",
-        "conventions_hints",
-        "testing_hints",
-        "claude_hints",
-    ],
-}
+MAX_GENERATION_ATTEMPTS = 3
+GENERATION_TIMEOUT_SECONDS = 120
 
 PROMPT_TEMPLATE = """Jesteś doświadczonym Architektem/Tech Leadem software house'u,
 który projektuje profil technologiczny dla generatora środowisk Claude Code
@@ -87,7 +49,21 @@ profili tego narzędzia (konkretne, praktyczne wskazówki, nie ogólniki):
   (odpowiednio: konwencje struktury/kodu, strategia testów, dodatkowy
   kontekst dla Claude przy generowaniu dokumentacji projektu).
 
-Zwróć WYŁĄCZNIE JSON zgodny z dostarczonym schematem.
+Zwróć WYŁĄCZNIE surowy JSON (bez markdown, bez bloków ```, bez żadnego
+komentarza przed ani po) o dokładnie takim kształcie:
+
+{{
+  "name": "...",
+  "description": "...",
+  "languages": ["..."],
+  "frameworks": ["..."],
+  "setup_commands": ["..."],
+  "extra_agents": [{{"id": "...", "name": "...", "description": "...", "focus": "..."}}],
+  "skills": [{{"name": "...", "description": "...", "when_to_use": "...", "guidance": "..."}}],
+  "conventions_hints": "...",
+  "testing_hints": "...",
+  "claude_hints": "..."
+}}
 """
 
 FIELD_ORDER = [
@@ -104,19 +80,51 @@ FIELD_ORDER = [
     "claude_hints",
 ]
 
+_CODE_FENCE_RE = re.compile(r"^```(?:json)?\s*\n?(.*?)\n?```$", re.DOTALL)
+
+
+def _extract_json_object(raw: str) -> dict:
+    """Parsuje JSON z odpowiedzi modelu, tolerując otoczenie blokiem ``` albo
+    prozą przed/po (mimo instrukcji część modeli i tak to dodaje)."""
+    text = raw.strip()
+    fence_match = _CODE_FENCE_RE.match(text)
+    if fence_match:
+        text = fence_match.group(1).strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        raise json.JSONDecodeError("Brak obiektu JSON w odpowiedzi", text, 0)
+    return json.loads(text[start : end + 1])
+
 
 def generate_profile(stack_description: str, profile_id: str, *, model: str | None = None) -> StackProfile:
-    """Woła Claude, żeby zaprojektował nowy profil stacku, i zwraca go jako `StackProfile`."""
+    """Woła Claude, żeby zaprojektował nowy profil stacku, i zwraca go jako `StackProfile`.
+
+    Każda próba to zwykły, krótki prompt (bez `--json-schema`) — jeśli model
+    zwróci coś, co nie parsuje się do poprawnego profilu, ponawiamy do
+    `MAX_GENERATION_ATTEMPTS` razy zanim zgłosimy błąd.
+    """
     prompt = PROMPT_TEMPLATE.format(stack_description=stack_description)
-    raw = one_shot(prompt, allowed_tools=[], model=model, json_schema=PROFILE_JSON_SCHEMA)
-    try:
-        data = json.loads(raw)
-        data["id"] = profile_id
-        return StackProfile.model_validate(data)
-    except (json.JSONDecodeError, ValidationError) as exc:
-        raise ClaudeCLIError(
-            f"Claude zwrócił niepoprawne dane profilu ({exc}).\nSurowa odpowiedź:\n{raw}"
-        ) from exc
+    last_error: Exception | None = None
+    last_raw = ""
+
+    for _ in range(MAX_GENERATION_ATTEMPTS):
+        last_raw = one_shot(prompt, allowed_tools=[], model=model, timeout=GENERATION_TIMEOUT_SECONDS)
+        try:
+            data = _extract_json_object(last_raw)
+            data["id"] = profile_id
+            return StackProfile.model_validate(data)
+        except (json.JSONDecodeError, ValidationError) as exc:
+            last_error = exc
+
+    raise ClaudeCLIError(
+        f"Claude zwrócił niepoprawne dane profilu po {MAX_GENERATION_ATTEMPTS} "
+        f"próbach ({last_error}).\nOstatnia surowa odpowiedź:\n{last_raw}"
+    )
 
 
 def profile_to_yaml(profile: StackProfile) -> str:
