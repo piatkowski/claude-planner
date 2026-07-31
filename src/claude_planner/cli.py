@@ -26,7 +26,7 @@ app = typer.Typer(
     help="Generator żywego środowiska Claude Code do planowania projektów IT.",
     no_args_is_help=True,
 )
-profiles_app = typer.Typer(help="Przeglądanie i tworzenie profili stacków.")
+profiles_app = typer.Typer(help="Przeglądanie i tworzenie profili stacków.", no_args_is_help=True)
 app.add_typer(profiles_app, name="profiles")
 
 console = Console()
