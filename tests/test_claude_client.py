@@ -6,7 +6,9 @@ from claude_planner.claude_client import (
     ClaudeCLIError,
     ClaudeNotFoundError,
     ClaudeSession,
+    ClaudeStructuredOutputError,
     ensure_claude_available,
+    one_shot,
 )
 
 
@@ -85,3 +87,37 @@ def test_parse_output_raises_on_invalid_json():
 def test_parse_output_raises_on_empty_stdout():
     with pytest.raises(ClaudeCLIError):
         ClaudeSession._parse_output("   ", "some stderr")
+
+
+def test_one_shot_retries_on_structured_output_exhaustion_then_succeeds(monkeypatch):
+    calls = {"n": 0}
+
+    def fake_send(self, prompt):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise ClaudeStructuredOutputError("boom")
+        from claude_planner.claude_client import ClaudeTurnResult
+
+        return ClaudeTurnResult(text="ok", session_id="sid")
+
+    monkeypatch.setattr(ClaudeSession, "send", fake_send)
+
+    result = one_shot("hi", json_schema={"type": "object"})
+
+    assert result == "ok"
+    assert calls["n"] == 3
+
+
+def test_one_shot_gives_up_after_max_retries(monkeypatch):
+    calls = {"n": 0}
+
+    def fake_send(self, prompt):
+        calls["n"] += 1
+        raise ClaudeStructuredOutputError("boom")
+
+    monkeypatch.setattr(ClaudeSession, "send", fake_send)
+
+    with pytest.raises(ClaudeStructuredOutputError):
+        one_shot("hi", json_schema={"type": "object"}, max_retries=2)
+
+    assert calls["n"] == 3
