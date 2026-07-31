@@ -52,6 +52,20 @@ claude-planner init \
 Bez flag `init` pyta interaktywnie o wszystko. Pełny przykład od `init` po wdrożenie:
 [`WORKFLOW.md`](./WORKFLOW.md).
 
+### Konfiguracja przez plik `claude-planner.json`
+
+Zamiast powtarzać flagi `init`, możesz zapisać je raz w pliku
+`claude-planner.json` (odpowiednik `package.json` dla `npm init`) —
+zobacz [`CONFIG.md`](./CONFIG.md) po opis wszystkich pól i
+[`claude-planner.example.json`](./claude-planner.example.json) jako gotowy
+przykład do skopiowania. Flagi CLI zawsze nadpisują wartości z pliku.
+
+```bash
+cp claude-planner.example.json claude-planner.json
+# ...edytuj pola...
+claude-planner init   # bierze wartości z ./claude-planner.json
+```
+
 ## Generowanie nowych profili przez Claude
 
 Gdy żaden wbudowany profil nie pasuje do stacku, Claude projektuje nowy zamiast
