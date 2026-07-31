@@ -30,7 +30,7 @@ def test_regenerate_uses_saved_brief_without_rerunning_interview(tmp_path, monke
 
     calls = {}
 
-    def fake_generate_environment(brief, profiles, out_dir, model=None):
+    def fake_generate_environment(brief, profiles, out_dir, model=None, on_step=None):
         calls["brief"] = brief
         calls["out_dir"] = out_dir
         return {"docs": ["vision.md"], "adr_count": 0, "agents": [], "commands": [], "skills": []}

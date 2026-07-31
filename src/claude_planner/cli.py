@@ -17,6 +17,7 @@ from claude_planner.intake import IntakeError
 from claude_planner.models import ProjectBrief
 from claude_planner.profile_generator import generate_profile, profile_to_yaml
 from claude_planner.profiles import DEFAULT_CUSTOM_PROFILES_DIR, get_profile, load_all_profiles
+from claude_planner.progress import thinking
 from claude_planner.scaffold import ScaffoldError, run_init
 from claude_planner.textutils import slugify
 
@@ -131,7 +132,8 @@ def profiles_create(
 
     console.print(f"Generuję profil '{resolved_id}' dla stacku: {stack_description} (model: {chosen_model.value})...")
     try:
-        profile = generate_profile(stack_description, resolved_id, model=chosen_model.value)
+        with thinking(console, "Claude projektuje profil"):
+            profile = generate_profile(stack_description, resolved_id, model=chosen_model.value)
     except ClaudeCLIError as exc:
         console.print(f"[red]Błąd generowania profilu: {exc}[/red]")
         raise typer.Exit(code=1) from exc
@@ -278,7 +280,14 @@ def regenerate(
         f"(profile: {', '.join(brief.profile_ids)})..."
     )
     try:
-        summary = generate_environment(brief, profiles, output, model=model.value if model else None)
+        with console.status("Generowanie środowiska...", spinner="dots") as status:
+            summary = generate_environment(
+                brief,
+                profiles,
+                output,
+                model=model.value if model else None,
+                on_step=lambda label: status.update(f"Generuję: {label} (może to potrwać kilka minut)..."),
+            )
     except ClaudeCLIError as exc:
         console.print(f"[red]Błąd: {exc}[/red]")
         raise typer.Exit(code=1) from exc

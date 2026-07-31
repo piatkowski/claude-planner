@@ -15,6 +15,7 @@ from claude_planner.intake import summarize_intake
 from claude_planner.interview import InterviewRunner
 from claude_planner.models import ProjectBrief
 from claude_planner.profiles import get_profile
+from claude_planner.progress import thinking
 from claude_planner.roles import INTERVIEW_ROLES
 
 
@@ -88,7 +89,8 @@ def run_init(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     console.rule("[bold]Analiza materiałów od klienta")
-    intake_summary = summarize_intake(intake_path, model=model)
+    with thinking(console, "Analizuję materiały od klienta"):
+        intake_summary = summarize_intake(intake_path, model=model)
     console.print(intake_summary)
 
     console.rule("[bold]Wywiad discovery")
@@ -137,7 +139,14 @@ def run_init(
 
     console.rule("[bold]Generowanie środowiska")
     try:
-        summary = generate_environment(brief, profiles, output_dir, model=model)
+        with console.status("Generowanie środowiska...", spinner="dots") as status:
+            summary = generate_environment(
+                brief,
+                profiles,
+                output_dir,
+                model=model,
+                on_step=lambda label: status.update(f"Generuję: {label} (może to potrwać kilka minut)..."),
+            )
     except ClaudeCLIError:
         console.print(
             "[red]Generowanie środowiska nie powiodło się. Brief i transkrypt wywiadu "
