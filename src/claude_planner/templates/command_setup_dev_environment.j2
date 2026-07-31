@@ -20,7 +20,8 @@ Komendy bootstrapujące per wybrany profil technologiczny:
 {% endfor %}
 
 Zasady:
-1. Zanim uruchomisz komendę instalującą jakąkolwiek zależność, sprawdź `.claude/hooks/check-pinned-dependency.py` — komendy z przypiętą wersją pakietu zostaną zablokowane. NIE zgaduj (nie halucynuj) wersji z pamięci; jeśli komenda wymaga wersji, zapytaj o nią użytkownika.
+1. Nie zgaduj wersji pakietów z pamięci — komendy z przypiętą wersją blokuje hook
+   `.claude/hooks/check-pinned-dependency.py`; jeśli wersja jest konieczna, zapytaj użytkownika.
 2. Jeśli którakolwiek komenda wygląda na instalację globalną (poza katalogiem projektu, np. `npm install -g`, `pip install --user`, systemowe paczki), zapytaj użytkownika o potwierdzenie przed uruchomieniem.
 3. Uruchamiaj komendy po kolei i sprawdzaj kod wyjścia — jeśli któraś zawiedzie, zatrzymaj się i zapytaj użytkownika zamiast próbować obejść błąd na siłę.
 4. Po zakończeniu poinformuj użytkownika, że warto otworzyć nową sesję Claude Code, żeby code intelligence (LSP) dla tego stacku poprawnie się zainicjował.
