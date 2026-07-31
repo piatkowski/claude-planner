@@ -1,0 +1,9 @@
+{
+  "name": "Sklep XYZ",
+  "client": "Acme Sp. z o.o.",
+  "output": "./sklep-xyz",
+  "intake": "./intake",
+  "profiles": ["web-fullstack", "postgresql-pgvector-postgis"],
+  "profiles_dir": "~/.claude-planner/profiles",
+  "model": "sonnet"
+}

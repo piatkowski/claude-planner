@@ -12,6 +12,7 @@ from rich.table import Table
 
 from claude_planner import __version__
 from claude_planner.claude_client import ClaudeCLIError, ClaudeNotFoundError, ensure_claude_available
+from claude_planner.config import DEFAULT_CONFIG_FILENAME, ConfigError, ProjectConfig, find_default_config, load_config
 from claude_planner.generator import generate_environment
 from claude_planner.intake import IntakeError
 from claude_planner.models import ProjectBrief
@@ -178,6 +179,16 @@ def init(
     model: ModelChoice = typer.Option(
         None, "--model", help="Model Claude do użycia w wywiadzie i generowaniu (sonnet/opus)."
     ),
+    config: Path = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help=(
+            f"Ścieżka do pliku konfiguracyjnego z domyślnymi wartościami "
+            f"(domyślnie: ./{DEFAULT_CONFIG_FILENAME}, jeśli istnieje). "
+            "Flagi CLI mają pierwszeństwo przed wartościami z pliku."
+        ),
+    ),
 ) -> None:
     """Utwórz nowe repo projektu i wygeneruj kompletne środowisko planistyczne."""
     try:
@@ -186,22 +197,57 @@ def init(
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(code=1) from exc
 
-    project_name = project_name or Prompt.ask("Nazwa projektu")
-    client_name = client_name or Prompt.ask("Nazwa klienta")
-    output = output or Path(Prompt.ask("Ścieżka wyjściowa (nowe repo)", default=f"./{project_name}"))
+    resolved_config_path = config or find_default_config()
+    cfg: ProjectConfig | None = None
+    if resolved_config_path is not None:
+        if not resolved_config_path.exists():
+            console.print(f"[red]Nie znaleziono pliku konfiguracyjnego: {resolved_config_path}[/red]")
+            raise typer.Exit(code=1)
+        try:
+            cfg = load_config(resolved_config_path)
+        except ConfigError as exc:
+            console.print(f"[red]{exc}[/red]")
+            raise typer.Exit(code=1) from exc
+        console.print(f"Wczytano konfigurację: {resolved_config_path}")
+
+    project_name = project_name or (cfg.name if cfg else None) or Prompt.ask("Nazwa projektu")
+    client_name = client_name or (cfg.client if cfg else None) or Prompt.ask("Nazwa klienta")
+    output = (
+        output
+        or (Path(cfg.output) if cfg and cfg.output else None)
+        or Path(Prompt.ask("Ścieżka wyjściowa (nowe repo)", default=f"./{project_name}"))
+    )
 
     if intake is None:
-        intake_raw = Prompt.ask(
-            "Ścieżka do folderu z materiałami od klienta (Enter, jeśli brak)", default=""
-        )
-        intake = Path(intake_raw) if intake_raw.strip() else None
+        cfg_intake = cfg.intake if cfg else None
+        if cfg_intake:
+            intake = Path(cfg_intake)
+            if not intake.is_dir():
+                console.print(
+                    f"[red]Ścieżka `intake` z konfiguracji nie istnieje lub nie jest folderem: {intake}[/red]"
+                )
+                raise typer.Exit(code=1)
+        else:
+            intake_raw = Prompt.ask(
+                "Ścieżka do folderu z materiałami od klienta (Enter, jeśli brak)", default=""
+            )
+            intake = Path(intake_raw) if intake_raw.strip() else None
 
-    resolved_profiles_dir = _resolve_profiles_dir(profiles_dir)
-    profile_ids = list(profile) if profile else []
+    resolved_profiles_dir = _resolve_profiles_dir(
+        profiles_dir or (Path(cfg.profiles_dir) if cfg and cfg.profiles_dir else None)
+    )
+    profile_ids = list(profile) if profile else (list(cfg.profiles) if cfg and cfg.profiles else [])
     if not profile_ids:
         available = load_all_profiles(extra_dir=resolved_profiles_dir)
         profile_ids = _select_profiles(list(available.keys()))
 
+    if model is None and cfg and cfg.model:
+        try:
+            model = ModelChoice(cfg.model)
+        except ValueError as exc:
+            valid = ", ".join(choice.value for choice in ModelChoice)
+            console.print(f"[red]Nieprawidłowy `model` w konfiguracji: {cfg.model!r} (dozwolone: {valid})[/red]")
+            raise typer.Exit(code=1) from exc
     if model is None:
         model = ModelChoice(Prompt.ask("Model Claude", choices=["sonnet", "opus"], default="sonnet"))
 
