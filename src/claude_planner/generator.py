@@ -48,13 +48,19 @@ def _context_block(brief: ProjectBrief, profiles: list[StackProfile]) -> str:
     stages_text = "\n\n".join(
         f"### {stage.display_name}\n{stage.summary}" for stage in brief.stages
     )
+    scale_line = (
+        f"Oceniona skala projektu (Orchestrator): {brief.state.scale.value} "
+        f"({brief.state.scale_justification})\n"
+        if brief.state.scale
+        else ""
+    )
     return f"""Projekt: {brief.project_name}
 Klient: {brief.client_name}
 
 Profile technologiczne:
 {profile_lines}
 
-Streszczenie materiałów od klienta (intake):
+{scale_line}Streszczenie materiałów od klienta (intake):
 {brief.intake_summary}
 
 Ustalenia z wywiadu discovery:

@@ -119,6 +119,7 @@ def run_init(
             intake_path=str(intake_path) if intake_path else None,
             intake_summary=intake_summary,
             stages=runner.completed_stages,
+            state=runner.state,
         )
         _write_metadata(output_dir, partial_brief)
         raise
@@ -130,6 +131,7 @@ def run_init(
         intake_path=str(intake_path) if intake_path else None,
         intake_summary=intake_summary,
         stages=stages,
+        state=runner.state,
     )
 
     # Brief zapisujemy PRZED generowaniem środowiska (a nie po) — jeśli generowanie
@@ -178,6 +180,11 @@ def _write_metadata(output_dir: Path, brief: ProjectBrief) -> None:
     # Pełny brief w JSON (maszynowo odczytywalny) — pozwala `claude-planner regenerate`
     # odtworzyć środowisko bez ponownego przeprowadzania wywiadu z klientem.
     (meta_dir / "brief.json").write_text(brief.model_dump_json(indent=2), encoding="utf-8")
+    # Globalna pamięć (Blackboard) osobno, do wglądu bez parsowania całego briefu —
+    # co dokładnie ustalono, skąd (która rola), i jaką skalę ocenił Orchestrator.
+    (meta_dir / "project-state.json").write_text(
+        brief.state.model_dump_json(indent=2), encoding="utf-8"
+    )
 
     lines = [f"# Transkrypt wywiadu — {brief.project_name}\n"]
     for stage in brief.stages:
