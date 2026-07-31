@@ -2,7 +2,7 @@ import json
 import subprocess
 from types import SimpleNamespace
 
-from claude_planner.claude_client import ClaudeSession
+from claude_planner.claude_client import ClaudeSession, ClaudeStructuredOutputError
 
 
 def test_send_returns_parsed_result(monkeypatch):
@@ -55,3 +55,28 @@ def test_send_raises_on_nonzero_returncode(monkeypatch):
         assert "boom" in str(exc)
     else:
         raise AssertionError("expected ClaudeCLIError")
+
+
+def test_send_raises_structured_output_error_on_retry_exhaustion(monkeypatch):
+    monkeypatch.setattr("claude_planner.claude_client.shutil.which", lambda name: "/usr/bin/claude")
+    monkeypatch.setattr(
+        "claude_planner.claude_client.subprocess.run",
+        lambda *a, **k: SimpleNamespace(
+            returncode=1,
+            stdout=json.dumps(
+                {
+                    "is_error": True,
+                    "subtype": "error_max_structured_output_retries",
+                    "errors": ["Failed to provide valid structured output after 5 attempts"],
+                }
+            ),
+            stderr="",
+        ),
+    )
+    session = ClaudeSession(json_schema={"type": "object"})
+    try:
+        session.send("hi")
+    except ClaudeStructuredOutputError as exc:
+        assert "schematem JSON" in str(exc)
+    else:
+        raise AssertionError("expected ClaudeStructuredOutputError")

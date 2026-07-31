@@ -25,6 +25,13 @@ class ClaudeNotFoundError(ClaudeCLIError):
     """Binarka `claude` nie jest dostępna w PATH."""
 
 
+class ClaudeStructuredOutputError(ClaudeCLIError):
+    """`claude` wyczerpał własne, wewnętrzne próby dopasowania odpowiedzi do
+    `--json-schema` (`error_max_structured_output_retries`). To zwykle błąd
+    przejściowy modelu, a nie problem z promptem/schematem — warto ponowić
+    całe wywołanie."""
+
+
 @dataclass
 class ClaudeTurnResult:
     text: str
@@ -106,6 +113,16 @@ class ClaudeSession:
             ) from exc
 
         if proc.returncode != 0:
+            try:
+                parsed = json.loads(proc.stdout.strip())
+            except json.JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, dict) and parsed.get("subtype") == "error_max_structured_output_retries":
+                errors = "; ".join(parsed.get("errors", [])) or "brak szczegółów"
+                raise ClaudeStructuredOutputError(
+                    "Claude nie zdołał wygenerować odpowiedzi zgodnej ze schematem JSON "
+                    f"po własnych próbach ({errors})."
+                )
             raise ClaudeCLIError(
                 f"`claude` zakończył się kodem {proc.returncode}.\n"
                 f"stderr:\n{proc.stderr}\nstdout:\n{proc.stdout}"
@@ -136,6 +153,9 @@ class ClaudeSession:
         return ClaudeTurnResult(text=text, session_id=session_id, is_error=is_error, raw=data)
 
 
+STRUCTURED_OUTPUT_MAX_RETRIES = 2
+
+
 def one_shot(
     prompt: str,
     *,
@@ -146,15 +166,28 @@ def one_shot(
     cwd: str | None = None,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
     json_schema: dict | None = None,
+    max_retries: int = STRUCTURED_OUTPUT_MAX_RETRIES,
 ) -> str:
-    """Pojedyncze, bezstanowe wywołanie — użyteczne do generowania jednego dokumentu."""
-    session = ClaudeSession(
-        system_prompt=system_prompt,
-        add_dirs=add_dirs,
-        allowed_tools=allowed_tools,
-        model=model,
-        cwd=cwd,
-        timeout=timeout,
-        json_schema=json_schema,
-    )
-    return session.send(prompt).text
+    """Pojedyncze, bezstanowe wywołanie — użyteczne do generowania jednego dokumentu.
+
+    Przy `json_schema` porażka bywa przejściowa (model chwilowo nie trafia w
+    schemat, `--json-schema` wewnętrznie wyczerpuje własne próby) — ponawiamy
+    całe wywołanie `claude` od nowa, zamiast od razu wywalać cały krok generowania.
+    """
+    attempt = 0
+    while True:
+        session = ClaudeSession(
+            system_prompt=system_prompt,
+            add_dirs=add_dirs,
+            allowed_tools=allowed_tools,
+            model=model,
+            cwd=cwd,
+            timeout=timeout,
+            json_schema=json_schema,
+        )
+        try:
+            return session.send(prompt).text
+        except ClaudeStructuredOutputError:
+            if attempt >= max_retries:
+                raise
+            attempt += 1
