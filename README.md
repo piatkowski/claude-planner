@@ -1,5 +1,7 @@
 # Claude Code Planner CLI
 
+<img width="1983" height="793" alt="ChatGPT Image 31 lip 2026, 15_05_34" src="https://github.com/user-attachments/assets/29b1da88-2855-4687-93c1-9a3bc95b6bb8" />
+
 Generator środowiska Claude Code do planowania projektów IT — dla dowolnego stacku.
 
 `claude-planner init` tworzy lokalne repo projektu i wypełnia je:
