@@ -41,22 +41,16 @@ nad projektem od przeczytania `state.md`. Aktualizuj go WYŁĄCZNIE przez `/upda
 
 ## Środowisko deweloperskie i code intelligence (LSP)
 
-Zanim zaczniesz pisać kod, uruchom `/setup-dev-environment` — instaluje toolchain
-i zależności wybranego stacku. To WYMAGANE, nie opcjonalne: bez zainstalowanych
-zależności/SDK Claude Code nie ma z czego uruchomić code intelligence (language
-server) dla tego projektu. Nie uruchamiaj sesji roboczych nad tym repo z flagą
-`--bare` — wyłącza ona LSP, hooki i inne mechanizmy, na których opiera się to środowisko.
+Zanim zaczniesz pisać kod, uruchom `/setup-dev-environment` (wymagane — bez tego
+LSP nie ma czego uruchomić). Nie używaj flagi `--bare` w sesjach nad tym repo —
+wyłącza LSP i hooki.
 
 ## Zależności — zakaz halucynowania wersji
 
-Przy dodawaniu jakiejkolwiek zależności NIGDY nie zgaduj (nie halucynuj) numeru
-wersji pakietu z pamięci treningowej — mogła się zmienić. Zamiast tego: pomiń
-przypięcie wersji i pozwól menedżerowi pakietów pobrać najnowszą, albo sprawdź
-realnie dostępną wersję komendą tego menedżera (np. `npm view <pkg> versions`,
-`pip index versions <pkg>`, `composer show -a <pkg>`), albo zapytaj o dokładną
-wersję użytkownika. Komendy instalujące z przypiętą wersją są automatycznie
-blokowane przez hook `.claude/hooks/check-pinned-dependency.py` — jeśli zostaniesz
-zablokowany, zastosuj się do jednej z powyższych opcji zamiast obchodzić hook.
+Nie zgaduj numerów wersji pakietów z pamięci — pomiń przypięcie wersji albo
+sprawdź dostępną wersję komendą menedżera pakietów. Instalacje z przypiętą
+wersją blokuje hook `.claude/hooks/check-pinned-dependency.py` (komunikat
+błędu zawiera dalsze instrukcje).
 
 ## Zasady pracy z tym repo
 

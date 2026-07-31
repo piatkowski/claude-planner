@@ -1,9 +1,9 @@
 # Workflow: jak pracować z Claude Code w tym projekcie
 
 Projekt: **{{ project_name }}** (klient: {{ client_name }}) — środowisko wygenerowane
-{{ generated_at }} przez `claude-planner`. Ten dokument to konkretna instrukcja "od A do Z":
-od otwarcia repo do wdrożenia, z użyciem DOKŁADNIE tych agentów/komend/skilli, które
-zostały wygenerowane dla tego projektu (nie ogólny poradnik).
+{{ generated_at }} przez `claude-planner`. Instrukcja "od A do Z" od otwarcia repo do
+wdrożenia, z DOKŁADNIE tymi agentami/komendami/skillami, które zostały wygenerowane
+dla tego projektu.
 
 ## 0. Zanim zaczniesz
 
@@ -28,10 +28,9 @@ Otwórz sesję w katalogu tego repo i jako pierwszą rzecz uruchom:
 /setup-dev-environment
 ```
 
-To zainstaluje toolchain/zależności wybranego stacku — bez tego Claude Code nie ma
-z czego uruchomić code intelligence (LSP) dla tego projektu. Po zakończeniu otwórz
-nową sesję, żeby LSP się poprawnie zainicjował. `SessionStart` hook przy każdym
-starcie sesji przypomina Ci bieżący stan projektu z `state.md`.
+Instaluje toolchain/zależności wybranego stacku (wymagane dla LSP — patrz
+`CLAUDE.md`). Po zakończeniu otwórz nową sesję, żeby LSP się zainicjował.
+`SessionStart` hook przy każdym starcie sesji przypomina bieżący stan z `state.md`.
 
 ## 2. Agenci dostępni w tym projekcie
 
@@ -64,10 +63,7 @@ ręcznie, ale warto wiedzieć, jakie konwencje obowiązują:
 2. **Wybierz zadanie** z `docs/prd.md` (backlog) zgodnie z fazą w `docs/roadmap.md`.
 3. **Implementuj** — trzymaj się `docs/coding-standards.md` (konwencje kodu tego stacku)
    i `docs/definition-of-done.md` (kiedy zadanie jest naprawdę skończone).
-4. **Zależności**: jeśli zadanie wymaga nowej biblioteki, NIE pozwól Claude zgadywać
-   wersji — hook `.claude/hooks/check-pinned-dependency.py` i tak zablokuje instalację
-   z "na sztywno" wpisaną wersją. Claude albo zainstaluje najnowszą (bez przypięcia),
-   albo sam sprawdzi dostępne wersje komendą menedżera pakietów, albo zapyta Ciebie.
+4. **Zależności**: bez przypiętych wersji z pamięci — zasada i hook opisane w `CLAUDE.md`.
 5. **Testuj** zgodnie z `docs/test-strategy.md`.
 6. **Decyzje architektoniczne o wysokim koszcie zmiany** (wybór technologii, kluczowy
    wzorzec integracji) dokumentuj od razu: `/new-adr`. Drobniejsze ustalenia: `/log-decision`.
@@ -94,22 +90,14 @@ ręcznie, ale warto wiedzieć, jakie konwencje obowiązują:
 
 ## 7. Wdrożenie
 
-Ten generator dostarcza wyłącznie artefakty planistyczne — środowisko Claude Code,
-nie szkielet kodu ani pipeline CI/CD. Zanim wdrożysz projekt na produkcję:
-
-1. Sprawdź `docs/roadmap.md` — wdrożenie powinno być jawnym etapem/kamieniem milowym,
-   nie efektem ubocznym ostatniego commita.
-2. Upewnij się, że kryteria z `docs/definition-of-done.md` są spełnione dla całego
-   zakresu wydania, nie tylko pojedynczego zadania.
-3. Jeśli w `docs/adr/` są decyzje dotyczące środowisk (dev/staging/prod) lub strategii
-   wdrożenia — zastosuj się do nich; jeśli ich brak, a decyzja o wdrożeniu jest
-   nietrywialna, udokumentuj ją przez `/new-adr` PRZED wdrożeniem, nie po.
-4. Po wdrożeniu uruchom `/update-state`, żeby `state.md` odzwierciedlał nową fazę
-   projektu (np. "Wdrożono MVP na produkcję").
+Generator dostarcza wyłącznie artefakty planistyczne, nie pipeline CI/CD. Przed
+wdrożeniem: sprawdź, że jest jawnym etapem w `docs/roadmap.md`, że kryteria z
+`docs/definition-of-done.md` są spełnione dla całego zakresu wydania, i że decyzje
+o środowiskach/strategii wdrożenia są w `docs/adr/` (dopisz `/new-adr` PRZED
+wdrożeniem, jeśli brak). Po wdrożeniu uruchom `/update-state`.
 
 ## 8. Gdy coś nie pasuje do tego workflow
 
-Ten plik i `CLAUDE.md` opisują domyślny proces wygenerowany dla tego projektu — nie
-są wykute w kamieniu. Jeśli proces przestaje pasować do rzeczywistości projektu,
-zaktualizuj `docs/coding-standards.md`/`docs/test-strategy.md` świadomie (np. przez
-rozmowę z Claude i ręczną edycję), zamiast po cichu je ignorować.
+Ten plik i `CLAUDE.md` to domyślny proces, nie sztywna reguła — aktualizuj
+`docs/coding-standards.md`/`docs/test-strategy.md` świadomie, zamiast po cichu
+je ignorować.
