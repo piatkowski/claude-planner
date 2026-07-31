@@ -13,7 +13,7 @@ import json
 from rich.console import Console
 from rich.prompt import Prompt
 
-from claude_planner.claude_client import READ_ONLY_TOOLS, ClaudeCLIError, ClaudeSession
+from claude_planner.claude_client import READ_ONLY_TOOLS, ClaudeSession
 from claude_planner.models import (
     InterviewAnswer,
     InterviewRole,
@@ -104,16 +104,19 @@ class InterviewRunner:
         self.intake_path = intake_path
         self.model = model
         self.console = console or Console()
+        self.completed_stages: list[InterviewStageResult] = []
 
     def run(self, roles: list[InterviewRole]) -> list[InterviewStageResult]:
-        stages: list[InterviewStageResult] = []
+        """Prowadzi wszystkie etapy po kolei. Jeśli któryś etap padnie (ClaudeCLIError),
+        wyjątek leci dalej zamiast fabrykować dokumentację z pustego etapu — to, co zdążyło
+        się zebrać do tego momentu, zostaje w `self.completed_stages` dla wywołującego."""
         summaries_so_far = ""
         for role in roles:
             stage = self._run_stage(role, summaries_so_far)
-            stages.append(stage)
+            self.completed_stages.append(stage)
             if stage.summary:
                 summaries_so_far += f"\n\n### {role.display_name}\n{stage.summary}"
-        return stages
+        return self.completed_stages
 
     def _run_stage(self, role: InterviewRole, previous_summaries: str) -> InterviewStageResult:
         console = self.console
@@ -139,11 +142,12 @@ class InterviewRunner:
         forced_end = False
 
         for _ in range(MAX_TURNS_PER_STAGE):
-            try:
-                result = session.send(prompt)
-            except ClaudeCLIError as exc:
-                console.print(f"[red]Błąd wywołania Claude: {exc}[/red]")
-                break
+            # ClaudeCLIError celowo NIE jest tu łapany: etap, którego nie udało się
+            # przeprowadzić, nie może cicho zamienić się w pusty/zmyślony fallback
+            # (patrz `_run_stage`'s summary fallback poniżej) trafiający potem do
+            # dokumentacji projektu. Wywołujący (`scaffold.run_init`) łapie ten wyjątek
+            # i zapisuje to, co już zebrano, zanim przerwie.
+            result = session.send(prompt)
 
             turn = _parse_turn(result.text)
             action = turn.get("action")

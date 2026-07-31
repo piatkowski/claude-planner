@@ -49,6 +49,18 @@ def test_no_allowed_tools_disables_all_tools():
     cmd = session._build_command("hi")
     idx = cmd.index("--tools")
     assert cmd[idx + 1] == ""
+    assert "--allowedTools" not in cmd
+
+
+def test_allowed_tools_restricts_tool_set_and_auto_approves_them():
+    session = ClaudeSession(allowed_tools=["Read", "Glob"])
+    cmd = session._build_command("hi")
+
+    tools_idx = cmd.index("--tools")
+    assert cmd[tools_idx + 1] == "Read,Glob"
+
+    allowed_idx = cmd.index("--allowedTools")
+    assert cmd[allowed_idx + 1] == "Read Glob"
 
 
 def test_parse_output_success():

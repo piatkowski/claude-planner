@@ -1,3 +1,5 @@
+import pytest
+
 from claude_planner.profiles import get_profile, load_all_profiles
 
 EXPECTED_IDS = {
@@ -45,3 +47,25 @@ def test_get_profile_returns_matching_id():
     profile = get_profile("wordpress-woocommerce")
     assert profile.id == "wordpress-woocommerce"
     assert "PHP" in profile.languages
+
+
+def test_load_all_profiles_skips_unparseable_yaml_and_warns(tmp_path):
+    (tmp_path / "broken.yaml").write_text("key: [unclosed list\n", encoding="utf-8")
+    (tmp_path / "good.yaml").write_text(
+        "id: custom-good\nname: Custom Good\ndescription: opis\n", encoding="utf-8"
+    )
+
+    with pytest.warns(UserWarning, match="broken.yaml"):
+        profiles = load_all_profiles(extra_dir=tmp_path)
+
+    assert "custom-good" in profiles
+    assert all(pid != "broken" for pid in profiles)
+
+
+def test_load_all_profiles_skips_profile_missing_required_fields(tmp_path):
+    (tmp_path / "invalid.yaml").write_text("id: custom-invalid\n", encoding="utf-8")
+
+    with pytest.warns(UserWarning, match="invalid.yaml"):
+        profiles = load_all_profiles(extra_dir=tmp_path)
+
+    assert "custom-invalid" not in profiles

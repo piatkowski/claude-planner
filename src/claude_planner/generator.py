@@ -283,7 +283,10 @@ def _write_settings(claude_dir: Path) -> None:
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "echo '--- state.md ---'; sed -n \"1,12p\" state.md 2>/dev/null || true",
+                            "command": (
+                                "echo '--- state.md ---'; "
+                                'sed -n "1,12p" "$CLAUDE_PROJECT_DIR/state.md" 2>/dev/null || true'
+                            ),
                         }
                     ]
                 }
@@ -294,7 +297,10 @@ def _write_settings(claude_dir: Path) -> None:
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "python3 .claude/hooks/check-pinned-dependency.py",
+                            "command": (
+                                'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/'
+                                'check-pinned-dependency.py"'
+                            ),
                         }
                     ],
                 }

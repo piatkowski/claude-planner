@@ -77,10 +77,12 @@ class ClaudeSession:
             cmd += ["--resume", self.session_id]
         for directory in self.add_dirs:
             cmd += ["--add-dir", directory]
+        # --tools faktycznie ogranicza zestaw narzędzi dostępnych dla modelu;
+        # --allowedTools tylko auto-zatwierdza permission prompty dla tych narzędzi
+        # (bez niego wywołania odczytowe czekałyby na akceptację w trybie non-interactive).
+        cmd += ["--tools", ",".join(self.allowed_tools)]
         if self.allowed_tools:
             cmd += ["--allowedTools", " ".join(self.allowed_tools)]
-        else:
-            cmd += ["--tools", ""]
         if self.model:
             cmd += ["--model", self.model]
         if self.json_schema:

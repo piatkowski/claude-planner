@@ -5,8 +5,9 @@ from __future__ import annotations
 import json
 
 import yaml
+from pydantic import ValidationError
 
-from claude_planner.claude_client import one_shot
+from claude_planner.claude_client import ClaudeCLIError, one_shot
 from claude_planner.models import StackProfile
 
 PROFILE_JSON_SCHEMA = {
@@ -108,9 +109,14 @@ def generate_profile(stack_description: str, profile_id: str, *, model: str | No
     """Woła Claude, żeby zaprojektował nowy profil stacku, i zwraca go jako `StackProfile`."""
     prompt = PROMPT_TEMPLATE.format(stack_description=stack_description)
     raw = one_shot(prompt, allowed_tools=[], model=model, json_schema=PROFILE_JSON_SCHEMA)
-    data = json.loads(raw)
-    data["id"] = profile_id
-    return StackProfile.model_validate(data)
+    try:
+        data = json.loads(raw)
+        data["id"] = profile_id
+        return StackProfile.model_validate(data)
+    except (json.JSONDecodeError, ValidationError) as exc:
+        raise ClaudeCLIError(
+            f"Claude zwrócił niepoprawne dane profilu ({exc}).\nSurowa odpowiedź:\n{raw}"
+        ) from exc
 
 
 def profile_to_yaml(profile: StackProfile) -> str:

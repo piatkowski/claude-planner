@@ -6,6 +6,11 @@ from pathlib import Path
 
 from claude_planner.claude_client import READ_ONLY_TOOLS, one_shot
 
+
+class IntakeError(RuntimeError):
+    """Ścieżka do materiałów od klienta (--intake) jest nieprawidłowa."""
+
+
 SUMMARY_PROMPT = """W folderze, do którego masz dostęp przez Read/Glob/Grep, znajdują się
 materiały od klienta dotyczące nowego projektu IT (mogą to być: notatki tekstowe,
 wstępna specyfikacja, opis MVP, makiety HTML, schemat bazy danych, dowolne inne pliki).
@@ -27,7 +32,11 @@ def summarize_intake(intake_path: str | Path | None, *, model: str | None = None
     if not intake_path:
         return "(brak folderu z materiałami od klienta — nic do analizy)"
     path = Path(intake_path)
-    if not path.is_dir() or not any(path.iterdir()):
+    if not path.exists():
+        raise IntakeError(f"Ścieżka do materiałów od klienta nie istnieje: {path}")
+    if not path.is_dir():
+        raise IntakeError(f"Ścieżka do materiałów od klienta nie jest katalogiem: {path}")
+    if not any(path.iterdir()):
         return "(folder z materiałami od klienta jest pusty)"
 
     return one_shot(
