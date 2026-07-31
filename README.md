@@ -1,4 +1,4 @@
-# claude-planner
+# Claude Code Planner CLI
 
 Generator środowiska Claude Code do planowania projektów IT — dla dowolnego stacku.
 
