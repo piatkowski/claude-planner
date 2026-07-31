@@ -46,7 +46,7 @@ PROFILES_DIR_OPTION = typer.Option(
 
 
 def _resolve_profiles_dir(profiles_dir: Path | None) -> Path:
-    return profiles_dir or DEFAULT_CUSTOM_PROFILES_DIR
+    return (profiles_dir or DEFAULT_CUSTOM_PROFILES_DIR).expanduser()
 
 
 def _version_callback(value: bool) -> None:
