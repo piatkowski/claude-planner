@@ -93,7 +93,17 @@ epików podzielonych na historyjki użytkownika (`Jako ..., chcę ..., żeby ...
 oszacowaniem priorytetu (Must/Should/Could). Zwróć WYŁĄCZNIE treść dokumentu.""",
     "roadmap.md": """Napisz roadmapę projektu (`docs/roadmap.md`) w Markdown, po polsku,
 podzieloną na fazy/kamienie milowe (np. Discovery, MVP, kolejne iteracje) z grubym
-zakresem czasowym i zależnościami między fazami. Zwróć WYŁĄCZNIE treść dokumentu.""",
+zakresem czasowym i zależnościami między fazami.
+
+Każdą fazę rozbij dalej na ponumerowane etapy (np. Faza 1: `1.1`, `1.2`, `1.3`...,
+Faza 2: `2.1`, `2.2`...) — każdy etap musi być na tyle mały, żeby dało się go
+zaimplementować w jednej sesji Claude Code (pojedyncze zadanie/wycinek funkcjonalności,
+nie cała faza naraz). Dla każdego etapu podaj: krótką nazwę, konkretny zakres (co
+dokładnie powstaje), zależności od innych etapów oraz orientacyjne kryterium
+"gotowe". Numeracja etapów musi być stabilna i jednoznaczna, żeby można było się do
+niej odwołać poleceniem typu "Zaimplementuj fazę 1 etap 1.1".
+
+Zwróć WYŁĄCZNIE treść dokumentu.""",
     "definition-of-done.md": """Napisz Definition of Done (`docs/definition-of-done.md`)
 w Markdown, po polsku — konkretną, sprawdzalną listę kryteriów, które musi spełnić
 zadanie/feature żeby uznać je za ukończone w tym projekcie. Zwróć WYŁĄCZNIE treść
